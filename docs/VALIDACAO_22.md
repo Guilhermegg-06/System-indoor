@@ -33,9 +33,9 @@ A integração entre seleção, motor e apresentação continua na #30.
 React Testing Library, DOM Testing Library e Happy DOM foram adicionados apenas
 como dependências de desenvolvimento. Permitem testar a saída acessível e
 atualizações reais das propriedades, sem substituir o React por mocks. São as
-mesmas ferramentas e faixas de versão já adotadas na PR #35. Happy DOM está
-habilitado apenas no arquivo de testes da UI; os testes do motor continuam no
-ambiente Node.
+mesmas ferramentas e faixas de versão já adotadas na PR #35. Após incorporar
+a PR #37, Happy DOM atende às duas suítes de interface. Os testes do motor
+usam o ambiente Node.
 
 ## Evidências locais em 12 de novembro de 2026
 
@@ -108,11 +108,46 @@ atualizar apenas a referência remota com `git fetch origin main`.
 | `npm test` | OK; código de saída 0, 35 testes em 2 arquivos (17 da UI e 18 do motor) |
 | `npm run build` | OK; código de saída 0 |
 
-As verificações repetidas cobrem o estado local baseado em `88bf84b`. A
-compatibilidade com a main mais recente ainda deve ser validada após uma
-atualização autorizada da branch, conciliando `package.json` e
-`package-lock.json`, que também foram alterados pela PR #37. A auditoria não
-publicou nada e não executou commit, push, merge ou abertura de Pull Request.
+As verificações dessa auditoria cobriram o estado local baseado em `88bf84b`,
+antes do commit da #22 e da atualização autorizada registrada a seguir.
+
+## Validação após o merge local
+
+Em 12 de novembro de 2026, `git fetch origin` confirmou a main remota em
+`cd544c0`, com a PR #37 integrada. O merge local incorpora esse histórico à
+branch `feat/ui-04-resultado-rota` e mantém `e67b409` como ancestral.
+
+Houve conflitos em `package.json` e `package-lock.json`. O manifesto da #22
+contém todas as dependências e versões declaradas pela PR #37, além da
+declaração direta de `@testing-library/dom`. Essa declaração foi mantida para
+atender ao peer obrigatório `^10.0.0` de `@testing-library/react`, cuja API é
+utilizada pelos testes das duas interfaces.
+
+Os lockfiles continham os mesmos pacotes e versões. As diferenças se limitavam
+à declaração direta no manifesto raiz e às marcações `peer` de 13 pacotes.
+O lockfile consistente com a dependência direta foi validado por
+`npm install --package-lock-only --ignore-scripts --no-audit --no-fund`.
+A operação manteve o conteúdo do lockfile da #22 e todas as versões existentes.
+As comparações com as duas branches confirmaram que os componentes, estilos e
+testes de resultado da rota e pesquisa foram incorporados integralmente.
+
+A revalidação usou Node `22.23.5` e npm `10.9.9`, em uma distribuição portátil
+temporária da linha utilizada pela CI. O arquivo baixado do site oficial do
+Node teve seu SHA-256 conferido. A primeira tentativa de `npm ci` falhou com
+`EPERM` porque o servidor Vite local mantinha a DLL do Rolldown em uso.
+Após identificar e encerrar esse processo do projeto, a instalação passou.
+
+| Verificação após a resolução | Resultado |
+| --- | --- |
+| `npm ci` | OK na segunda tentativa, código de saída 0 |
+| `npm run lint` | OK, código de saída 0, sem avisos |
+| `npm run typecheck` | OK, código de saída 0 |
+| `npm test` | OK, código de saída 0, 38 testes em 3 arquivos |
+| `npm run build` | OK, código de saída 0 |
+
+Os 38 testes abrangem 17 casos da apresentação de rota, 3 de pesquisa e 18 do
+motor. A atualização foi concluída por commit de merge local. Publicação,
+abertura de PR e execução remota da CI aguardam a próxima etapa autorizada.
 
 ## Limitações e pendências
 
@@ -124,17 +159,15 @@ publicou nada e não executou commit, push, merge ou abertura de Pull Request.
   conseguiu confirmar a URL atual do Edge. Não há homologação visual, responsiva,
   em dispositivos físicos ou com leitor de tela. Os testes de DOM verificam
   estrutura semântica e conteúdo, sem comprovar esses comportamentos visuais.
-- A execução local usou Node 24. A CI configurada usa Node 22 e deve passar na
-  PR antes do merge; não houve execução remota de CI nesta entrega.
-- A branch está dois commits atrás da main remota consultada na auditoria.
-  A atualização e a revalidação sobre a base recente permanecem pendentes.
+- A revalidação após o merge local passou com Node 22. A execução remota da CI
+  permanece pendente na futura PR.
 - A issue #22 já estava atribuída a `KaueSun` ao ser consultada. O CLI não pôde
   consultar ou atualizar o Project por ausência do escopo `read:project`.
   A movimentação para `In Progress` permanece pendente. Para leitura e escrita
   pelo CLI, o titular pode executar `gh auth refresh -s project`, desde que
   tenha acesso ao Project privado.
-- Commits, push e abertura de PR aguardam o usuário, conforme solicitado.
-  Não houve merge nem publicação.
+- Push e abertura de PR aguardam autorização do usuário. O commit `e67b409`
+  e o merge local estão registrados no histórico da branch.
 
 ## Preparação da Pull Request
 
@@ -147,8 +180,9 @@ Descrição sugerida:
 > ausência de caminho, local inválido e grafo inválido. Usa exclusivamente
 > identificadores e custos fictícios, sem converter pesos para unidades reais.
 >
-> Inclui 17 testes de UI; os 35 testes do projeto, lint, typecheck e build
-> passaram localmente. O bundle isolado do componente e de seu CSS também passou.
+> Inclui 17 testes da apresentação de rota. Após incorporar a PR #37, os 38
+> testes do projeto, lint, typecheck e build passaram localmente com Node 22.
+> O bundle isolado do componente e de seu CSS também passou na validação inicial.
 > A validação visual foi bloqueada pela proteção de computer use.
 >
 > A integração com a aplicação pertence à #30. App, CSS global e layout da
@@ -156,5 +190,5 @@ Descrição sugerida:
 >
 > Closes #22
 
-Após revisar e fazer seus commits nesta branch, publique-a e abra a PR com base
+Após a autorização para publicação, envie esta branch e abra a PR com base
 `main`. Aguarde a CI e a revisão exigida pelo repositório antes de integrar.
