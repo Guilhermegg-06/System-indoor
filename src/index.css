@@ -29,12 +29,14 @@ p {
   display: grid;
   gap: 1rem;
 }
-.search-panel {
+.route-panel {
   margin-top: 1rem;
   padding: 1rem;
   border: 1px solid #dfe7e2;
   border-radius: 0.875rem;
   background: #ffffff;
+  display: grid;
+  gap: 1rem;
 }
 .search-field {
   display: grid;
@@ -88,11 +90,15 @@ p {
 .search-results small {
   color: #5a6e6a;
 }
-.selected-result {
-  margin-top: 1rem;
+.selection-pill,
+.route-summary {
   padding: .75rem .875rem;
   border-radius: .75rem;
   background: #edf6f3;
   color: #1b3f3d;
 }
+.route-summary[data-status='ok'] { background: #e5f7ee; }
+.route-summary[data-status='no-path'] { background: #fdf0e8; color: #7d3b1a; }
+.route-summary[data-status='invalid-location'],
+.route-summary[data-status='invalid-graph'] { background: #fceaea; color: #7a2c2c; }
 
