@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# Navegação Indoor Afya
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Navegação institucional pelo celular para ajudar alunos e visitantes a encontrar locais.
 
-Currently, two official plugins are available:
+**O ambiente real da faculdade ainda não foi modelado. O desenvolvimento utiliza grafos e dados fictícios para desacoplar o software do levantamento físico.**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Escopo
+Minishopping + parte do primeiro bloco; pesquisa, seleção manual de origem/destino, cálculo e apresentação de rota. Integração 3D em etapa futura. Sem autenticação, GPS indoor, Supabase ou IA.
 
-## React Compiler
+## Stack e arquitetura
+React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js/React Three Fiber ficam para integração futura.
+- `src/modules/navigation`: motor puro, tipos e resultados explícitos; independente de React/3D.
+- `src/data/graphs`: G1 normal, G2 com desvio, G3 bloqueado sem desvio.
+- `src/modules/search`, `locations`, `scene`: limites dos módulos futuros.
+- `src/components`: componentes compartilhados quando necessários.
+- `src/tests`: casos funcionais rastreáveis.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+As arestas são bidirecionais, pesos finitos não negativos, bloqueios ignorados na busca. Coordenadas x/y/z opcionais. O algoritmo usa busca de custo mínimo (Dijkstra, equivalente a A* com heurística zero): uma heurística espacial só será introduzida quando houver relação validada entre coordenadas e pesos. Os pesos atuais não representam metros ou minutos.
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Executar
+Node 22.12+ (linha 22) e npm:
+```sh
+npm ci
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Validar
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+`npm run test:watch` acompanha mudanças. CI executa as mesmas etapas em PRs para main e pushes em main, com cache npm.
+
+## Fluxo Git
+Crie uma branch de feature a partir da main. Faça commits pequenos, abra PR, aguarde CI e uma aprovação de outro colaborador. Não faça desenvolvimento direto na main. Force push e exclusão da main são proibidos.
+O primeiro commit vazio apenas inicializa o repositório; todo o desenvolvimento entra por PR.
+
+## Status
+Fundação e motor mínimo em revisão. Interface contém apenas identificação do projeto, sem pesquisa/rota integrada. Testes cobrem o núcleo fictício; não validam o campus, 3D ou desempenho em celulares.
+Project: https://github.com/users/Guilhermegg-06/projects/4
+Veja [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).
+
