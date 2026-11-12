@@ -5,7 +5,7 @@ Navegação institucional pelo celular para ajudar alunos e visitantes a encontr
 **O ambiente real da faculdade ainda não foi modelado. O desenvolvimento utiliza grafos e dados fictícios para desacoplar o software do levantamento físico.**
 
 ## Escopo
-Minishopping + parte do primeiro bloco; pesquisa, seleção manual de origem/destino, cálculo e apresentação de rota. Integração 3D em etapa futura. Sem autenticação, GPS indoor, Supabase ou IA.
+Minishopping + parte do primeiro bloco; pesquisa, seleção manual de origem/destino, cálculo e apresentação de rota e exploração 3D. A exploração 3D faz parte do MVP planejado, mas será implementada depois da fundação atual. Sem autenticação, GPS indoor, Supabase ou IA.
 
 ## Stack e arquitetura
 React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js/React Three Fiber ficam para integração futura.
@@ -40,5 +40,6 @@ O primeiro commit vazio apenas inicializa o repositório; todo o desenvolvimento
 ## Status
 Fundação e motor mínimo em revisão. Interface contém apenas identificação do projeto, sem pesquisa/rota integrada. Testes cobrem o núcleo fictício; não validam o campus, 3D ou desempenho em celulares.
 Project: https://github.com/users/Guilhermegg-06/projects/4
-Veja [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).
+Comece pelo [guia da equipe](docs/GUIA_DA_EQUIPE.md), que explica o código, as tarefas, o Kanban, as labels, os testes e o fluxo de revisão.
+Veja também [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).
 
