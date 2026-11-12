@@ -1,20 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import SearchField, { type SearchResult } from './components/SearchField'
-
-const catalog: SearchResult[] = [
-  { id: 'E0', label: 'Entrada principal', description: 'Ponto de entrada' },
-  { id: 'C1', label: 'Corredor 1', description: 'Nível principal' },
-  { id: 'C2', label: 'Corredor 2', description: 'Conexão com salas' },
-  { id: 'C3', label: 'Corredor 3', description: 'Desvio de rota' },
-  { id: 'S101', label: 'Sala 101', description: 'Sala de aula' },
-  { id: 'S102', label: 'Sala 102', description: 'Sala de aula' },
-  { id: 'L01', label: 'Laboratório 01', description: 'Laboratório de informática' },
-  { id: 'I01', label: 'Índex', description: 'Ponto isolado' },
-]
+import { filterLocations, getLocationCatalog } from './modules/search/catalog'
 
 function App() {
+  const catalog = useMemo(() => getLocationCatalog(), [])
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<SearchResult | null>(null)
+
+  const visibleResults = useMemo(() => filterLocations(query, catalog), [catalog, query])
 
   return (
     <main className="app-shell">
@@ -30,8 +23,11 @@ function App() {
           value={query}
           onChange={setQuery}
           onSubmit={() => {
-            const match = catalog.find(item => item.label.toLowerCase() === query.trim().toLowerCase())
-            if (match) setSelected(match)
+            const match = visibleResults[0]
+            if (match) {
+              setSelected(match)
+              setQuery(match.label)
+            }
           }}
           results={catalog}
           onSelect={(item) => {
