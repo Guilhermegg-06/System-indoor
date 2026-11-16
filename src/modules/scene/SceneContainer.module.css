@@ -1,0 +1,13 @@
+.container {
+  min-width: 0;
+}
+
+.viewport {
+  display: grid;
+  place-items: center;
+  min-height: 16rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  text-align: center;
+}

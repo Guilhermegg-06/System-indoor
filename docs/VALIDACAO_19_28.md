@@ -113,3 +113,16 @@ sem coordenadas adicionadas ou alteração de nomes, andares ou setores.
   A mutação `UpdateProjectV2ItemFieldValue` foi negada para KaueSun após a
   habilitação do escopo. O registro anterior de movimentação foi corrigido
   após conferir a falha da chamada.
+
+## Atualização final com a PR 39
+
+Durante a retomada, a PR #39 foi integrada à main em `6e7f473`, acrescentando
+a fronteira isolada de cena e três testes de `SceneContainer`. Essa atualização
+foi incorporada por um segundo merge local, sem conflitos. Os arquivos da cena
+mantêm o conteúdo da main, e o catálogo e o shell originais seguem preservados.
+
+O manifesto e o lockfile continuaram idênticos aos da main. Após incorporar
+essa atualização, lint, typecheck e build passaram novamente com Node `22.23.5`.
+Toda a suíte passou com 56 testes em 6 arquivos, incluindo os 53 casos já
+validados e os 3 testes da cena. A CI da PR #35 deve ser conferida no último
+commit publicado.
