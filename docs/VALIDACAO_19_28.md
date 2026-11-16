@@ -51,7 +51,8 @@ encerrada sem merge, enquanto as PRs #34, #37 e #38 já estavam integradas
 
 O usuário confirmou KaueSun como coordenador desta retomada e responsável pela
 #28. Guilhermegg-06 permanece responsável pela #19. Após a habilitação do escopo
-de Projects pelo titular, ambas as issues foram movidas para `In Progress`.
+de Projects pelo titular, a leitura do quadro funcionou, mas a atualização de
+status foi negada por falta de permissão de escrita para KaueSun.
 
 O merge local da main apresentou conflitos de adição em seis arquivos.
 
@@ -108,3 +109,7 @@ sem coordenadas adicionadas ou alteração de nomes, andares ou setores.
 - O job `quality` da PR #35 retomada passou com os 53 testes, lint, typecheck
   e build. A revisão foi solicitada a FelpsSds. Done depende da homologação
   visual restante, da revisão e da integração na main.
+- Mover #28 e #19 para `In Progress` exige permissão de edição no Project.
+  A mutação `UpdateProjectV2ItemFieldValue` foi negada para KaueSun após a
+  habilitação do escopo. O registro anterior de movimentação foi corrigido
+  após conferir a falha da chamada.
