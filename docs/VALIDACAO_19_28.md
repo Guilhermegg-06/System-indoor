@@ -49,9 +49,9 @@ O histórico original até `bc4068e` foi preservado. A PR #35 havia sido
 encerrada sem merge, enquanto as PRs #34, #37 e #38 já estavam integradas
 à main em `5cfa38f`.
 
-KaueSun é o responsável vigente pela #28 e foi adotado como coordenador desta
-retomada. A #19 permanece atribuída a Guilhermegg-06. A definição compartilhada
-foi consultada ao usuário durante a execução e pode ser ajustada pela equipe.
+O usuário confirmou KaueSun como coordenador desta retomada e responsável pela
+#28. Guilhermegg-06 permanece responsável pela #19. Após a habilitação do escopo
+de Projects pelo titular, ambas as issues foram movidas para `In Progress`.
 
 O merge local da main apresentou conflitos de adição em seis arquivos.
 
@@ -105,8 +105,6 @@ sem coordenadas adicionadas ou alteração de nomes, andares ou setores.
   de computer use, que não conseguiu confirmar a URL atual do Edge. As imagens
   e a evidência de 12 de novembro permanecem como registro histórico. A nova
   homologação responsiva, por teclado e em dispositivos físicos está pendente.
-- O token atual não possui o escopo `read:project`. O CLI não pôde atualizar
-  o Project privado para `In Progress`. A atualização depende de um titular com
-  acesso ao quadro ou da habilitação do escopo `project` no CLI.
-- A revisão da equipe e a CI remota devem ser conferidas na PR #35 retomada.
-  Done depende da validação restante e da integração na main.
+- O job `quality` da PR #35 retomada passou com os 53 testes, lint, typecheck
+  e build. A revisão foi solicitada a FelpsSds. Done depende da homologação
+  visual restante, da revisão e da integração na main.
