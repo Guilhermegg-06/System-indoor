@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mockLocations } from '../data/locations.mock'
+import { G1, G2, G3 } from '../data/graphs/fixtures'
 
 // IDs compartilhados com os cenários fictícios planejados; não são um mapa real.
 const knownNodeIds = ['E0', 'C1', 'C2', 'S101', 'S102', 'L01'] as const
@@ -30,6 +31,15 @@ describe('DATA-01 — contrato do catálogo fictício', () => {
 
   it('referencia somente os nós fictícios esperados, sem referências vazias', () => {
     expect(mockLocations.map(location => location.nodeId).sort()).toEqual([...knownNodeIds].sort())
+  })
+
+  it('mantém os seis locais compatíveis com os grafos fictícios integrados', () => {
+    for (const graph of [G1, G2, G3]) {
+      const graphNodeIds = new Set(graph.nodes.map(node => node.id))
+      for (const location of mockLocations) {
+        expect(graphNodeIds.has(location.nodeId), `Nó ${location.nodeId} deve existir no grafo`).toBe(true)
+      }
+    }
   })
 
   it('permite recuperar a sala pelo código e mantém coordenadas opcionais', () => {

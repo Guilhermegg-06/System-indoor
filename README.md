@@ -1,57 +1,56 @@
 # Navegação Indoor Afya
 
-Projeto acadêmico de navegação pelo celular para a UNIMA Afya Maceió.
+Navegação institucional pelo celular para ajudar alunos e visitantes a encontrar locais.
 
-## Escopo desta entrega
+**O ambiente real da faculdade ainda não foi modelado. O desenvolvimento utiliza grafos e dados fictícios para desacoplar o software do levantamento físico.**
 
-Esta branch entrega somente **#28 DATA-01** (contrato e catálogo fictício de locais) e **#19 UI-01** (layout principal). A `main` estava sem arquivos na inspeção inicial; por isso, esta PR inclui uma base mínima React + TypeScript + Vite + Vitest, com Oxlint e CI.
+## Escopo
+Minishopping + parte do primeiro bloco; pesquisa, seleção manual de origem/destino, cálculo e apresentação de rota e exploração 3D. A exploração 3D faz parte do MVP planejado, mas será implementada depois da fundação atual. Sem autenticação, GPS indoor, Supabase ou IA.
 
-O layout contém pesquisa, origem, destino, botão de rota, espaço para mapa/3D e resumo. **Os controles estão desativados intencionalmente.** Não há pesquisa, seleção funcional, algoritmo de rota, cena 3D, backend ou localização automática nesta entrega.
+## Stack e arquitetura
+React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js/React Three Fiber ficam para integração futura.
+- `src/modules/navigation`: motor puro, tipos e resultados explícitos; independente de React/3D.
+- `src/data/graphs`: G1 normal, G2 com desvio, G3 bloqueado sem desvio.
+- `src/modules/locations/location.types.ts`: contratos `Location`, `LocationType` e `Position3D`, independentes da interface.
+- `src/data/locations.mock.ts`: catálogo original de seis locais fictícios da #28.
+- `src/modules/search` e `scene`: limites dos módulos futuros.
+- `src/components`: componentes compartilhados quando necessários.
+- `src/tests`: casos funcionais rastreáveis.
 
-O MVP planejado abrange Minishopping e parte do primeiro bloco, incluindo exploração 3D. O restante do MVP será implementado em outras issues.
+As arestas são bidirecionais, pesos finitos não negativos, bloqueios ignorados na busca. Coordenadas x/y/z opcionais. O algoritmo usa busca de custo mínimo (Dijkstra, equivalente a A* com heurística zero): uma heurística espacial só será introduzida quando houver relação validada entre coordenadas e pesos. Os pesos atuais não representam metros ou minutos.
+
+## Contrato dos locais e layout
+
+`Location` exige `id`, `name`, `type`, `block`, `floor` e `nodeId`; `code` e `position` são opcionais. Os dados são somente leitura no contrato TypeScript. `id` identifica o registro do catálogo e `nodeId` permite a associação futura com o grafo.
+
+O catálogo preserva os seis registros originais da PR #35, associados a E0, C1, C2, S101, S102 e L01. Nomes, andares e setores são exemplos fictícios. Os registros omitem coordenadas; `Position3D` admite apenas coordenadas de desenvolvimento enquanto não houver escala física validada.
+
+O shell mobile da #19 apresenta pesquisa, origem, destino, mapa/3D e resumo. Os controles estão desativados nesta prévia. `SearchField` e `RouteResultView` permanecem disponíveis como componentes isolados para as próximas integrações.
+
+Esta retomada conjunta das issues #28 e #19 usa a branch `feat/base-dados-layout-19-28` e a PR #35. Seleção funcional, filtragem e ligação ao motor pertencem às issues #21, #29 e #30. A validação e as limitações estão em [VALIDACAO_19_28.md](docs/VALIDACAO_19_28.md).
 
 ## Executar
-
-Use Node.js 22.12 ou superior na linha 22 e npm.
-
+Node 22.12+ (linha 22) e npm:
 ```sh
 npm ci
 npm run dev
 ```
 
-Abra o endereço informado pelo terminal. Para encerrar, use Ctrl+C.
-
-## Verificar
-
+## Validar
 ```sh
 npm run lint
 npm run typecheck
 npm test
 npm run build
 ```
+`npm run test:watch` acompanha mudanças. CI executa as mesmas etapas em PRs para main e pushes em main, com cache npm.
 
-`npm run test:watch` acompanha alterações. `npm run preview` visualiza o build localmente, sem publicar um site. O GitHub Actions executa as quatro verificações em PRs para `main` e pushes na `main`, no job `quality`.
+## Fluxo Git
+Crie uma branch de feature a partir da main. Faça commits pequenos, abra PR, aguarde CI e uma aprovação de outro colaborador. Não faça desenvolvimento direto na main. Force push e exclusão da main são proibidos.
+O primeiro commit vazio apenas inicializa o repositório; todo o desenvolvimento entra por PR.
 
-## Organização
-
-- `src/modules/locations/location.types.ts`: tipos `Location`, `LocationType` e `Position3D`.
-- `src/data/locations.mock.ts`: seis locais fictícios; independente de React.
-- `src/components/LocationField.tsx`: apresentação de origem/destino usando o contrato de locais.
-- `src/App.tsx`: estrutura principal, regiões e estados indisponíveis.
-- `src/index.css`: layout responsivo, com coluna única no celular.
-- `src/tests`: contratos dos dados e testes do layout.
-- `docs/VALIDACAO_19_28.md`: ciclo RED/GREEN, verificação e limitações.
-
-## Contrato dos locais
-
-`id`, `name`, `type`, `block`, `floor` e `nodeId` são obrigatórios. `code` e `position` são opcionais. `id` identifica o registro do catálogo; `nodeId` permite a ligação futura com um nó do grafo. Eles não precisam ter o mesmo valor.
-
-Os tipos previstos são entrada, corredor, sala, laboratório, serviço, loja, banheiro, escada, elevador e outros, representados pela união `LocationType`. O andar é numérico. Os dados e suas propriedades são somente leitura no contrato TypeScript.
-
-Os mocks usam E0, C1, C2, S101, S102 e L01, compatíveis com os IDs dos cenários fictícios planejados. Nenhum grafo ou motor foi incluído. Nomes, setores e andares são exemplos; não constituem levantamento da faculdade. Os registros não incluem coordenadas. Caso `position` seja usada nesta fase, deverá conter apenas coordenadas mock, sem unidade física validada.
-
-## Próximas etapas
-
-Pesquisa (#20), seleção funcional (#21), resultado da rota (#22) e integrações (#29–#31) continuam fora desta PR. Mapeamento real e 3D também ficam pendentes. A UI usa somente `Location` e mocks, sem lógica de navegação.
-
-A PR #34 mantém uma fundação alternativa ainda em revisão. Esta entrega parte diretamente da `main` e não depende dela. Como ambas incluem arquivos de configuração, será necessário conciliar a base antes de integrar as duas; não trazer automaticamente o motor para o escopo de #19/#28.
+## Status
+Motor, SearchField e RouteResultView foram integrados na main pelas PRs #34, #37 e #38. A branch desta retomada reúne essas entregas com o contrato, os seis mocks e o layout originais da PR #35. Os testes cobrem os cenários fictícios e a apresentação dos componentes; a homologação do campus, do 3D e do desempenho em celulares depende das próximas etapas.
+Project: https://github.com/users/Guilhermegg-06/projects/4
+Comece pelo [guia da equipe](docs/GUIA_DA_EQUIPE.md), que explica o código, as tarefas, o Kanban, as labels, os testes e o fluxo de revisão.
+Veja também [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).
