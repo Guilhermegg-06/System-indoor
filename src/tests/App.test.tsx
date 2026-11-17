@@ -1,36 +1,65 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import App from '../App'
 import { mockLocations } from '../data/locations.mock'
 
 afterEach(cleanup)
 
-describe('UI-01 — layout sem navegação funcional', () => {
+describe('UI-01 e UI-03 — layout e seleção manual', () => {
   it('renderiza título, conteúdo principal e aviso de dados fictícios', () => {
     render(<App />)
     expect(screen.getByRole('heading', { level: 1, name: 'Navegação Indoor' })).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
-    expect(screen.getByText('Prévia de layout · Dados fictícios')).toBeTruthy()
+    expect(screen.getByText('Navegação experimental · Dados fictícios')).toBeTruthy()
   })
 
-  it('mantém busca e cálculo indisponíveis, sem sugerir uma rota funcional', () => {
+  it('valida os dois campos vazios e direciona o foco ao primeiro erro', () => {
     render(<App />)
-    expect(screen.getByRole('searchbox', { name: 'Pesquisar local' })).toHaveProperty('disabled', true)
-    expect(screen.getByRole('button', { name: 'Calcular rota' })).toHaveProperty('disabled', true)
-    expect(screen.getByText(/Busca, seleção e cálculo de rota ainda não estão disponíveis/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getByText('Selecione a origem.')).toBeTruthy()
+    expect(screen.getByText('Selecione o destino.')).toBeTruthy()
+    expect(screen.getByLabelText('Origem').getAttribute('aria-invalid')).toBe('true')
+    expect(screen.getByLabelText('Destino').getAttribute('aria-describedby')).toBe('destination-error')
+    expect(document.activeElement).toBe(screen.getByLabelText('Origem'))
   })
 
-  it.each(['Origem', 'Destino'])('prepara %s a partir do catálogo sem habilitar seleção', label => {
+  it.each(['Origem', 'Destino'])('seleciona %s pelo id do catálogo', label => {
     render(<App />)
     const select = screen.getByRole('combobox', { name: label })
-    expect(select).toHaveProperty('disabled', true)
+    expect(select).toHaveProperty('disabled', false)
     expect(select).toHaveProperty('value', '')
     expect(within(select).getAllByRole('option')).toHaveLength(mockLocations.length + 1)
     for (const location of mockLocations) {
       expect(within(select).getByRole('option', { name: `${location.name} · ${location.block}` }))
         .toHaveProperty('value', location.id)
     }
+    fireEvent.change(select, { target: { value: 'sala-101' } })
+    expect(select).toHaveProperty('value', 'sala-101')
+  })
+
+  it('inverte origem e destino, inclusive quando um campo está vazio', () => {
+    render(<App />)
+    const origin = screen.getByLabelText('Origem')
+    const destination = screen.getByLabelText('Destino')
+    fireEvent.change(origin, { target: { value: 'entrada' } })
+    fireEvent.change(destination, { target: { value: 'sala-101' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Inverter origem e destino' }))
+    expect(origin).toHaveProperty('value', 'sala-101')
+    expect(destination).toHaveProperty('value', 'entrada')
+    fireEvent.change(destination, { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Inverter origem e destino' }))
+    expect(origin).toHaveProperty('value', '')
+    expect(destination).toHaveProperty('value', 'sala-101')
+  })
+
+  it.each(['Origem', 'Destino'])('valida somente o campo ausente após preencher %s', label => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText(label), { target: { value: 'entrada' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    const missing = label === 'Origem' ? 'destino' : 'origem'
+    expect(screen.getByText(`Selecione ${missing === 'origem' ? 'a' : 'o'} ${missing}.`)).toBeTruthy()
+    expect(screen.getByLabelText(label).getAttribute('aria-invalid')).not.toBe('true')
   })
 
   it('reserva mapa e resumo, sem inventar trajeto ou representação real', () => {

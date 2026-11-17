@@ -40,7 +40,11 @@ input:disabled, select:disabled { background: #f6f8f8; color: #626e75; opacity: 
 input::placeholder { color: #626e75; opacity: 1; }
 .route-fields { border: 0; padding: 0; margin: 24px 0; display: grid; gap: 20px; min-width: 0; }
 .route-fields legend { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.calculate-button { width: 100%; min-height: 48px; border: 1px solid #e3cad4; border-radius: 5px; background: #f1e3e9; color: #82435b; font-weight: 650; cursor: not-allowed; }
+.calculate-button { width: 100%; min-height: 48px; border: 1px solid var(--accent); border-radius: 5px; background: var(--accent); color: white; font-weight: 650; cursor: pointer; }
+.calculate-button:hover { background: #7d2546; }
+.swap-button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 5px; background: #fafbfb; color: var(--accent); cursor: pointer; }
+.field-error { margin-top: 8px; font-size: .875rem; color: #9c233b; }
+select[aria-invalid="true"] { border-color: #9c233b; }
 .manual-origin { text-align: center; font-size: .75rem; color: var(--muted); margin-top: 10px; }
 .catalog-note { display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding-top: 20px; margin-top: 26px; }
 .catalog-count { font-size: 1.75rem; font-weight: 600; letter-spacing: -.06em; }

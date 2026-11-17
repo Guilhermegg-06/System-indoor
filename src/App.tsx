@@ -2,6 +2,30 @@ import { LocationField } from './components/LocationField'
 import { mockLocations } from './data/locations.mock'
 
 export default function App() {
+  const [originId, setOriginId] = useState('')
+  const [destinationId, setDestinationId] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  function changeLocation(field: 'origin' | 'destination', id: string) {
+    if (field === 'origin') setOriginId(id)
+    else setDestinationId(id)
+    setSubmitted(false)
+  }
+
+  function swapLocations() {
+    setOriginId(destinationId)
+    setDestinationId(originId)
+    setSubmitted(false)
+  }
+
+  function calculateRoute() {
+    setSubmitted(true)
+    if (!originId || !destinationId) {
+      document.getElementById(!originId ? 'origin' : 'destination')?.focus()
+      return
+    }
+  }
+
   return (
     <>
       <a className="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -17,14 +41,14 @@ export default function App() {
         <div className="intro">
           <p className="eyebrow">Minishopping + parte do primeiro bloco</p>
           <p className="intro-title">Seu caminho pelo campus.</p>
-          <p className="preview-label">Prévia de layout · Dados fictícios</p>
+          <p className="preview-label">Navegação experimental · Dados fictícios</p>
         </div>
 
         <div className="workspace">
           <section className="planner panel" aria-labelledby="planner-title">
             <h2 id="planner-title">Planeje seu trajeto</h2>
             <p className="section-description" id="preview-note">
-              Busca, seleção e cálculo de rota ainda não estão disponíveis nesta prévia.
+              Escolha sua origem e o local que deseja encontrar.
             </p>
 
             <div className="search-field">
@@ -38,16 +62,21 @@ export default function App() {
               />
             </div>
 
-            <fieldset className="route-fields" disabled aria-describedby="preview-note">
+            <form onSubmit={event => { event.preventDefault(); calculateRoute() }}>
+            <fieldset className="route-fields" aria-describedby="preview-note">
               <legend>Origem e destino</legend>
-              <LocationField id="origin" label="Origem" locations={mockLocations} />
-              <LocationField id="destination" label="Destino" locations={mockLocations} />
+              <LocationField id="origin" label="Origem" locations={mockLocations} value={originId}
+                onChange={id => changeLocation('origin', id)} error={submitted && !originId ? 'Selecione a origem.' : undefined} />
+              <button className="swap-button" type="button" onClick={swapLocations}>Inverter origem e destino</button>
+              <LocationField id="destination" label="Destino" locations={mockLocations} value={destinationId}
+                onChange={id => changeLocation('destination', id)} error={submitted && !destinationId ? 'Selecione o destino.' : undefined} />
             </fieldset>
 
-            <button className="calculate-button" type="button" disabled aria-describedby="preview-note">
+            <button className="calculate-button" type="submit">
               Calcular rota
             </button>
-            <p className="manual-origin">A origem será escolhida manualmente.</p>
+            </form>
+            <p className="manual-origin">A origem é escolhida manualmente.</p>
 
             <div className="catalog-note">
               <span className="catalog-count">{mockLocations.length.toString().padStart(2, '0')}</span>
@@ -84,3 +113,4 @@ export default function App() {
     </>
   )
 }
+import { useState } from 'react'
