@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import App from '../App'
 import { mockLocations } from '../data/locations.mock'
+import { G1, G3 } from '../data/graphs/fixtures'
+import type { Graph } from '../modules/navigation/types'
 
 afterEach(cleanup)
 
@@ -95,7 +97,113 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
     render(<App />)
     const map = screen.getByRole('region', { name: 'Mapa / 3D' })
     expect(within(map).getByText('Sem representação do campus nesta etapa')).toBeTruthy()
-    const summary = screen.getByRole('region', { name: 'Resumo da rota' })
-    expect(within(summary).getByText('Nenhum trajeto calculado.')).toBeTruthy()
+    const summary = screen.getByRole('region', { name: 'Resultado da rota' })
+    expect(within(summary).getByText('Nenhuma rota calculada.')).toBeTruthy()
+  })
+})
+
+function selectJourney(destination = 'sala-101') {
+  fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
+  fireEvent.change(screen.getByLabelText('Destino'), { target: { value: destination } })
+  fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+}
+
+function expectClearedRoute() {
+  expect(screen.getByText('Nenhuma rota calculada.')).toBeTruthy()
+  expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
+  expect(screen.queryByText(/Custo fictício:/)).toBeNull()
+}
+
+describe('INT-02 — interface integrada ao motor existente', () => {
+  it('converte Location.id em nodeId e exibe Entrada → Sala 101 na ordem correta', () => {
+    render(<App />)
+    selectJourney()
+    const route = screen.getByRole('region', { name: 'Resultado da rota' })
+    expect(within(route).getByRole('status').textContent).toBe('Rota encontrada. Siga os pontos na ordem apresentada.')
+    expect(within(route).getAllByRole('listitem').map(item => item.textContent)).toEqual(['E0', 'C1', 'C2', 'S101'])
+    expect(within(route).getByText('Custo fictício: 3 (sem unidade física).')).toBeTruthy()
+  })
+
+  it('calcula um destino escolhido pela pesquisa', () => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 's101' } })
+    fireEvent.click(screen.getByRole('button', { name: /Sala 101/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['E0', 'C1', 'C2', 'S101'])
+  })
+
+  it('informa origem igual ao destino sem mostrar deslocamento', () => {
+    render(<App />)
+    selectJourney('entrada')
+    expect(screen.getByText('A origem e o destino são o mesmo local. Não é necessário se deslocar.')).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
+  })
+
+  const missingNode: Graph = { nodes: G1.nodes.filter(node => node.id !== 'E0'), edges: G1.edges.filter(edge => edge.from !== 'E0' && edge.to !== 'E0') }
+  const invalidGraph: Graph = { ...G1, edges: [...G1.edges, { from: 'E0', to: 'C1', weight: -1 }] }
+  it.each([
+    ['no-path', G3, 'Não há caminho disponível entre a origem e o destino.'],
+    ['invalid-location', missingNode, 'A origem ou o destino informado não existe nos dados de navegação.'],
+    ['invalid-graph', invalidGraph, 'Os dados de navegação estão inconsistentes. Não foi possível apresentar a rota.'],
+  ] as const)('apresenta %s retornado pelo motor real', (_status, graph, message) => {
+    render(<App graph={graph} />)
+    selectJourney()
+    expect(screen.getByText(message)).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
+  })
+
+  it('rejeita um id desconhecido mesmo se uma opção for inserida fora do catálogo', () => {
+    render(<App />)
+    selectJourney()
+    const destination = screen.getByLabelText('Destino')
+    const option = document.createElement('option')
+    option.value = 'inexistente'
+    option.textContent = 'Local inexistente'
+    destination.appendChild(option)
+    fireEvent.change(destination, { target: { value: 'inexistente' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getByText('A origem ou o destino informado não existe nos dados de navegação.')).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
+    expect(screen.queryByText(/Custo fictício:/)).toBeNull()
+  })
+
+  it.each(['Origem', 'Destino'])('limpa a rota ao alterar %s e calcula somente com os novos valores', label => {
+    render(<App />)
+    selectJourney()
+    expect(screen.getByRole('list', { name: 'Pontos da rota em ordem' })).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(label), { target: { value: 'sala-102' } })
+    expectClearedRoute()
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(label === 'Origem'
+      ? ['S102', 'C2', 'S101'] : ['E0', 'C1', 'C2', 'S102'])
+  })
+
+  it('limpa ao inverter e calcula o percurso de retorno', () => {
+    render(<App />)
+    selectJourney()
+    fireEvent.click(screen.getByRole('button', { name: 'Inverter origem e destino' }))
+    expectClearedRoute()
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['S101', 'C2', 'C1', 'E0'])
+  })
+
+  it('limpa a rota quando a pesquisa substitui o destino', () => {
+    render(<App />)
+    selectJourney()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'l01' } })
+    fireEvent.click(screen.getByRole('button', { name: /Laboratório 01/ }))
+    expectClearedRoute()
+    expect(screen.getByLabelText('Destino')).toHaveProperty('value', 'laboratorio-01')
+  })
+
+  it('remove percurso e custo ao esvaziar o destino, e valida nova tentativa', () => {
+    render(<App />)
+    selectJourney()
+    fireEvent.change(screen.getByLabelText('Destino'), { target: { value: '' } })
+    expectClearedRoute()
+    fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+    expect(screen.getByText('Selecione o destino.')).toBeTruthy()
+    expectClearedRoute()
   })
 })

@@ -13,7 +13,7 @@ React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js/React Three F
 - `src/data/graphs`: G1 normal, G2 com desvio, G3 bloqueado sem desvio.
 - `src/modules/locations/location.types.ts`: contratos `Location`, `LocationType` e `Position3D`, independentes da interface.
 - `src/data/locations.mock.ts`: catálogo original de seis locais fictícios da #28.
-- `src/modules/search` e `scene`: limites dos módulos futuros.
+- `src/modules/search`: pesquisa por nome/código no catálogo recebido; `scene` permanece reservado à integração futura.
 - `src/components`: componentes compartilhados quando necessários.
 - `src/tests`: casos funcionais rastreáveis.
 
@@ -21,13 +21,13 @@ As arestas são bidirecionais, pesos finitos não negativos, bloqueios ignorados
 
 ## Contrato dos locais e layout
 
-`Location` exige `id`, `name`, `type`, `block`, `floor` e `nodeId`; `code` e `position` são opcionais. Os dados são somente leitura no contrato TypeScript. `id` identifica o registro do catálogo e `nodeId` permite a associação futura com o grafo.
+`Location` exige `id`, `name`, `type`, `block`, `floor` e `nodeId`; `code` e `position` são opcionais. Os dados são somente leitura no contrato TypeScript. `id` identifica a seleção no catálogo; `nodeId` é enviado ao motor de rotas.
 
 O catálogo preserva os seis registros originais da PR #35, associados a E0, C1, C2, S101, S102 e L01. Nomes, andares e setores são exemplos fictícios. Os registros omitem coordenadas; `Position3D` admite apenas coordenadas de desenvolvimento enquanto não houver escala física validada.
 
-O shell mobile da #19 apresenta pesquisa, origem, destino, mapa/3D e resumo. Os controles estão desativados nesta prévia. `SearchField` e `RouteResultView` permanecem disponíveis como componentes isolados para as próximas integrações.
+O layout da #19 agora integra `SearchField`, seleção manual, inversão e `RouteResultView`. Pesquise por nome ou código e escolha um resultado para preencher o destino. Para demonstrar: selecione Entrada e Sala 101, clique em **Calcular rota** e confira **E0 → C1 → C2 → S101**. Alterar os locais limpa o resultado anterior. O mapa/3D continua como placeholder.
 
-Esta retomada conjunta das issues #28 e #19 usa a branch `feat/base-dados-layout-19-28` e a PR #35. Seleção funcional, filtragem e ligação ao motor pertencem às issues #21, #29 e #30. A validação e as limitações estão em [VALIDACAO_19_28.md](docs/VALIDACAO_19_28.md).
+A fase 1 atende às issues #21, #29 e #30, sobre a base da PR #35. Evidências e limites: [VALIDACAO_MVP_FASE1.md](docs/VALIDACAO_MVP_FASE1.md). A validação anterior está em [VALIDACAO_19_28.md](docs/VALIDACAO_19_28.md).
 
 ## Executar
 Node 22.12+ (linha 22) e npm:
@@ -50,7 +50,7 @@ Crie uma branch de feature a partir da main. Faça commits pequenos, abra PR, ag
 O primeiro commit vazio apenas inicializa o repositório; todo o desenvolvimento entra por PR.
 
 ## Status
-Motor, SearchField e RouteResultView foram integrados na main pelas PRs #34, #37 e #38. A branch desta retomada reúne essas entregas com o contrato, os seis mocks e o layout originais da PR #35. Os testes cobrem os cenários fictícios e a apresentação dos componentes; a homologação do campus, do 3D e do desempenho em celulares depende das próximas etapas.
+Pesquisa, seleção e cálculo estão integrados nesta branch, usando os seis mocks e o motor existentes. Os testes cobrem os cenários fictícios e a interface; a homologação do campus, do 3D e do desempenho em celulares reais depende das próximas etapas.
 Project: https://github.com/users/Guilhermegg-06/projects/4
 Comece pelo [guia da equipe](docs/GUIA_DA_EQUIPE.md), que explica o código, as tarefas, o Kanban, as labels, os testes e o fluxo de revisão.
 Veja também [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).

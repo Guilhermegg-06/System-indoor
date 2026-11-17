@@ -1,33 +1,53 @@
+import { useEffect, useRef, useState } from 'react'
 import { LocationField } from './components/LocationField'
+import { RouteResultView } from './components/RouteResultView'
 import SearchField from './components/SearchField'
 import { mockLocations } from './data/locations.mock'
+import { G1 } from './data/graphs/fixtures'
+import { findRoute } from './modules/navigation/findRoute'
+import type { Graph, RouteResult } from './modules/navigation/types'
 import { searchLocations } from './modules/search/searchLocations'
 
-export default function App() {
+export default function App({ graph = G1 }: { graph?: Graph }) {
   const [originId, setOriginId] = useState('')
   const [destinationId, setDestinationId] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [query, setQuery] = useState('')
+  const [result, setResult] = useState<RouteResult | null>(null)
+  const resultRef = useRef<HTMLDivElement>(null)
   const matches = searchLocations(mockLocations, query)
+
+  // Aguarda o percurso renderizar para trazer o resultado inteiro à tela no celular.
+  useEffect(() => {
+    if (result) resultRef.current?.focus()
+  }, [result])
 
   function changeLocation(field: 'origin' | 'destination', id: string) {
     if (field === 'origin') setOriginId(id)
     else setDestinationId(id)
     setSubmitted(false)
+    setResult(null)
   }
 
   function swapLocations() {
     setOriginId(destinationId)
     setDestinationId(originId)
     setSubmitted(false)
+    setResult(null)
   }
 
   function calculateRoute() {
     setSubmitted(true)
+    setResult(null)
     if (!originId || !destinationId) {
       document.getElementById(!originId ? 'origin' : 'destination')?.focus()
       return
     }
+    const origin = mockLocations.find(location => location.id === originId)
+    const destination = mockLocations.find(location => location.id === destinationId)
+    setResult(origin && destination
+      ? findRoute(graph, origin.nodeId, destination.nodeId)
+      : { status: 'invalid-location', path: [] })
   }
 
   return (
@@ -82,18 +102,18 @@ export default function App() {
             </div>
 
             <form onSubmit={event => { event.preventDefault(); calculateRoute() }}>
-            <fieldset className="route-fields" aria-describedby="preview-note">
-              <legend>Origem e destino</legend>
-              <LocationField id="origin" label="Origem" locations={mockLocations} value={originId}
-                onChange={id => changeLocation('origin', id)} error={submitted && !originId ? 'Selecione a origem.' : undefined} />
-              <button className="swap-button" type="button" onClick={swapLocations}>Inverter origem e destino</button>
-              <LocationField id="destination" label="Destino" locations={mockLocations} value={destinationId}
-                onChange={id => changeLocation('destination', id)} error={submitted && !destinationId ? 'Selecione o destino.' : undefined} />
-            </fieldset>
+              <fieldset className="route-fields" aria-describedby="preview-note">
+                <legend>Origem e destino</legend>
+                <LocationField id="origin" label="Origem" locations={mockLocations} value={originId}
+                  onChange={id => changeLocation('origin', id)} error={submitted && !originId ? 'Selecione a origem.' : undefined} />
+                <button className="swap-button" type="button" onClick={swapLocations}>Inverter origem e destino</button>
+                <LocationField id="destination" label="Destino" locations={mockLocations} value={destinationId}
+                  onChange={id => changeLocation('destination', id)} error={submitted && !destinationId ? 'Selecione o destino.' : undefined} />
+              </fieldset>
 
-            <button className="calculate-button" type="submit">
-              Calcular rota
-            </button>
+              <button className="calculate-button" type="submit">
+                Calcular rota
+              </button>
             </form>
             <p className="manual-origin">A origem é escolhida manualmente.</p>
 
@@ -116,13 +136,9 @@ export default function App() {
             </div>
           </section>
 
-          <section className="route-summary panel" aria-labelledby="summary-title">
-            <div>
-              <p className="eyebrow">Seu trajeto</p>
-              <h2 id="summary-title">Resumo da rota</h2>
-            </div>
-            <p>Nenhum trajeto calculado.</p>
-          </section>
+          <div className="route-summary" ref={resultRef} tabIndex={-1}>
+            <RouteResultView result={result} />
+          </div>
         </div>
 
         <footer className="project-note">
@@ -132,4 +148,3 @@ export default function App() {
     </>
   )
 }
-import { useState } from 'react'
