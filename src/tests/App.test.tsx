@@ -6,6 +6,35 @@ import { mockLocations } from '../data/locations.mock'
 
 afterEach(cleanup)
 
+describe('INT-01 — pesquisa e escolha do destino', () => {
+  it.each(['sala 101', 's101'])('pesquisa %s e usa o resultado como destino', query => {
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
+    const search = screen.getByRole('searchbox', { name: 'Pesquisar local' })
+    expect(search).toHaveProperty('disabled', false)
+    fireEvent.change(search, { target: { value: query } })
+    const results = screen.getByRole('list', { name: 'Locais encontrados' })
+    expect(within(results).getAllByRole('button')).toHaveLength(1)
+    fireEvent.click(within(results).getByRole('button', { name: /Sala 101/ }))
+    expect(screen.getByLabelText('Destino')).toHaveProperty('value', 'sala-101')
+    expect(screen.getByLabelText('Origem')).toHaveProperty('value', 'entrada')
+    expect(document.activeElement).toBe(screen.getByLabelText('Destino'))
+  })
+
+  it('informa consulta vazia e ausência de resultados e permite limpar a pesquisa', () => {
+    render(<App />)
+    expect(screen.getByText('Pesquise por nome ou código para escolher o destino.')).toBeTruthy()
+    const search = screen.getByRole('searchbox', { name: 'Pesquisar local' })
+    fireEvent.change(search, { target: { value: 'biblioteca' } })
+    expect(screen.getByText('Nenhum local encontrado.')).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Locais encontrados' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar pesquisar local' }))
+    expect(search).toHaveProperty('value', '')
+    expect(screen.getByText('Pesquise por nome ou código para escolher o destino.')).toBeTruthy()
+    expect(screen.getByLabelText('Destino')).toHaveProperty('value', '')
+  })
+})
+
 describe('UI-01 e UI-03 — layout e seleção manual', () => {
   it('renderiza título, conteúdo principal e aviso de dados fictícios', () => {
     render(<App />)

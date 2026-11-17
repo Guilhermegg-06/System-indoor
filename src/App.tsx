@@ -1,10 +1,14 @@
 import { LocationField } from './components/LocationField'
+import SearchField from './components/SearchField'
 import { mockLocations } from './data/locations.mock'
+import { searchLocations } from './modules/search/searchLocations'
 
 export default function App() {
   const [originId, setOriginId] = useState('')
   const [destinationId, setDestinationId] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [query, setQuery] = useState('')
+  const matches = searchLocations(mockLocations, query)
 
   function changeLocation(field: 'origin' | 'destination', id: string) {
     if (field === 'origin') setOriginId(id)
@@ -52,14 +56,29 @@ export default function App() {
             </p>
 
             <div className="search-field">
-              <label htmlFor="location-search">Pesquisar local</label>
-              <input
-                id="location-search"
-                type="search"
-                placeholder="Sala, laboratório ou outro local"
-                aria-describedby="preview-note"
-                disabled
-              />
+              <SearchField label="Pesquisar local" value={query} onChange={setQuery}
+                placeholder="Nome ou código do local" />
+              <p className="search-message" role="status" aria-live="polite" aria-atomic="true">
+                {!query.trim() ? 'Pesquise por nome ou código para escolher o destino.'
+                  : matches.length === 0 ? 'Nenhum local encontrado.'
+                  : `${matches.length} ${matches.length === 1 ? 'local encontrado' : 'locais encontrados'}. Escolha o destino.`}
+              </p>
+              {matches.length > 0 && (
+                <ul className="search-results" aria-label="Locais encontrados">
+                  {matches.map(location => (
+                    <li key={location.id}>
+                      <button type="button" onClick={() => {
+                        changeLocation('destination', location.id)
+                        setQuery('')
+                        document.getElementById('destination')?.focus()
+                      }}>
+                        <span>{location.name}{location.code ? ` · ${location.code}` : ''}</span>
+                        <small>{location.block}</small>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <form onSubmit={event => { event.preventDefault(); calculateRoute() }}>
