@@ -1,7 +1,55 @@
+import { useEffect, useRef, useState } from 'react'
 import { LocationField } from './components/LocationField'
+import { RouteResultView } from './components/RouteResultView'
+import SearchField from './components/SearchField'
 import { mockLocations } from './data/locations.mock'
+import { G1 } from './data/graphs/fixtures'
+import { findRoute } from './modules/navigation/findRoute'
+import type { Graph, RouteResult } from './modules/navigation/types'
+import { searchLocations } from './modules/search/searchLocations'
 
-export default function App() {
+export default function App({ graph = G1 }: { graph?: Graph }) {
+  const [originId, setOriginId] = useState('')
+  const [destinationId, setDestinationId] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [query, setQuery] = useState('')
+  const [result, setResult] = useState<RouteResult | null>(null)
+  const resultRef = useRef<HTMLDivElement>(null)
+  const matches = searchLocations(mockLocations, query)
+
+  // Aguarda o percurso renderizar para trazer o resultado inteiro à tela no celular.
+  useEffect(() => {
+    if (result) resultRef.current?.focus()
+  }, [result])
+
+  function changeLocation(field: 'origin' | 'destination', id: string) {
+    if (field === 'origin') setOriginId(id)
+    else setDestinationId(id)
+    setSubmitted(false)
+    setResult(null)
+  }
+
+  function swapLocations() {
+    setOriginId(destinationId)
+    setDestinationId(originId)
+    setSubmitted(false)
+    setResult(null)
+  }
+
+  function calculateRoute() {
+    setSubmitted(true)
+    setResult(null)
+    if (!originId || !destinationId) {
+      document.getElementById(!originId ? 'origin' : 'destination')?.focus()
+      return
+    }
+    const origin = mockLocations.find(location => location.id === originId)
+    const destination = mockLocations.find(location => location.id === destinationId)
+    setResult(origin && destination
+      ? findRoute(graph, origin.nodeId, destination.nodeId)
+      : { status: 'invalid-location', path: [] })
+  }
+
   return (
     <>
       <a className="skip-link" href="#main-content">Ir para o conteúdo</a>
@@ -17,37 +65,57 @@ export default function App() {
         <div className="intro">
           <p className="eyebrow">Minishopping + parte do primeiro bloco</p>
           <p className="intro-title">Seu caminho pelo campus.</p>
-          <p className="preview-label">Prévia de layout · Dados fictícios</p>
+          <p className="preview-label">Navegação experimental · Dados fictícios</p>
         </div>
 
         <div className="workspace">
           <section className="planner panel" aria-labelledby="planner-title">
             <h2 id="planner-title">Planeje seu trajeto</h2>
             <p className="section-description" id="preview-note">
-              Busca, seleção e cálculo de rota ainda não estão disponíveis nesta prévia.
+              Escolha sua origem e o local que deseja encontrar.
             </p>
 
             <div className="search-field">
-              <label htmlFor="location-search">Pesquisar local</label>
-              <input
-                id="location-search"
-                type="search"
-                placeholder="Sala, laboratório ou outro local"
-                aria-describedby="preview-note"
-                disabled
-              />
+              <SearchField label="Pesquisar local" value={query} onChange={setQuery}
+                placeholder="Nome ou código do local" />
+              <p className="search-message" role="status" aria-live="polite" aria-atomic="true">
+                {!query.trim() ? 'Pesquise por nome ou código para escolher o destino.'
+                  : matches.length === 0 ? 'Nenhum local encontrado.'
+                  : `${matches.length} ${matches.length === 1 ? 'local encontrado' : 'locais encontrados'}. Escolha o destino.`}
+              </p>
+              {matches.length > 0 && (
+                <ul className="search-results" aria-label="Locais encontrados">
+                  {matches.map(location => (
+                    <li key={location.id}>
+                      <button type="button" onClick={() => {
+                        changeLocation('destination', location.id)
+                        setQuery('')
+                        document.getElementById('destination')?.focus()
+                      }}>
+                        <span>{location.name}{location.code ? ` · ${location.code}` : ''}</span>
+                        <small>{location.block}</small>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <fieldset className="route-fields" disabled aria-describedby="preview-note">
-              <legend>Origem e destino</legend>
-              <LocationField id="origin" label="Origem" locations={mockLocations} />
-              <LocationField id="destination" label="Destino" locations={mockLocations} />
-            </fieldset>
+            <form onSubmit={event => { event.preventDefault(); calculateRoute() }}>
+              <fieldset className="route-fields" aria-describedby="preview-note">
+                <legend>Origem e destino</legend>
+                <LocationField id="origin" label="Origem" locations={mockLocations} value={originId}
+                  onChange={id => changeLocation('origin', id)} error={submitted && !originId ? 'Selecione a origem.' : undefined} />
+                <button className="swap-button" type="button" onClick={swapLocations}>Inverter origem e destino</button>
+                <LocationField id="destination" label="Destino" locations={mockLocations} value={destinationId}
+                  onChange={id => changeLocation('destination', id)} error={submitted && !destinationId ? 'Selecione o destino.' : undefined} />
+              </fieldset>
 
-            <button className="calculate-button" type="button" disabled aria-describedby="preview-note">
-              Calcular rota
-            </button>
-            <p className="manual-origin">A origem será escolhida manualmente.</p>
+              <button className="calculate-button" type="submit">
+                Calcular rota
+              </button>
+            </form>
+            <p className="manual-origin">A origem é escolhida manualmente.</p>
 
             <div className="catalog-note">
               <span className="catalog-count">{mockLocations.length.toString().padStart(2, '0')}</span>
@@ -68,13 +136,9 @@ export default function App() {
             </div>
           </section>
 
-          <section className="route-summary panel" aria-labelledby="summary-title">
-            <div>
-              <p className="eyebrow">Seu trajeto</p>
-              <h2 id="summary-title">Resumo da rota</h2>
-            </div>
-            <p>Nenhum trajeto calculado.</p>
-          </section>
+          <div className="route-summary" ref={resultRef} tabIndex={-1}>
+            <RouteResultView result={result} />
+          </div>
         </div>
 
         <footer className="project-note">

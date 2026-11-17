@@ -34,13 +34,22 @@ main { max-width: 1200px; margin-inline: auto; padding: 28px 20px 24px; }
 .planner { padding: 24px; }
 .section-description { color: var(--muted); font-size: .875rem; line-height: 1.55; margin-top: 8px; }
 .search-field { margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.search-message { margin-top: 12px; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+.search-results { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.search-results button { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--line); border-radius: 5px; background: #fafbfb; text-align: left; color: inherit; cursor: pointer; }
+.search-results button:hover, .swap-button:hover { background: #f3e8ed; }
+.search-results small { display: block; margin-top: 4px; color: var(--muted); }
 label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 8px; }
 input, select { width: 100%; min-width: 0; min-height: 48px; border: 1px solid #cbd3d7; border-radius: 5px; padding: 12px; }
 input:disabled, select:disabled { background: #f6f8f8; color: #626e75; opacity: 1; -webkit-text-fill-color: #626e75; cursor: not-allowed; }
 input::placeholder { color: #626e75; opacity: 1; }
 .route-fields { border: 0; padding: 0; margin: 24px 0; display: grid; gap: 20px; min-width: 0; }
 .route-fields legend { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.calculate-button { width: 100%; min-height: 48px; border: 1px solid #e3cad4; border-radius: 5px; background: #f1e3e9; color: #82435b; font-weight: 650; cursor: not-allowed; }
+.calculate-button { width: 100%; min-height: 48px; border: 1px solid var(--accent); border-radius: 5px; background: var(--accent); color: white; font-weight: 650; cursor: pointer; }
+.calculate-button:hover { background: #7d2546; }
+.swap-button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 5px; background: #fafbfb; color: var(--accent); cursor: pointer; }
+.field-error { margin-top: 8px; font-size: .875rem; color: #9c233b; }
+select[aria-invalid="true"] { border-color: #9c233b; }
 .manual-origin { text-align: center; font-size: .75rem; color: var(--muted); margin-top: 10px; }
 .catalog-note { display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding-top: 20px; margin-top: 26px; }
 .catalog-count { font-size: 1.75rem; font-weight: 600; letter-spacing: -.06em; }
@@ -56,9 +65,7 @@ input::placeholder { color: #626e75; opacity: 1; }
 .map-placeholder h3 { font-size: 1.25rem; letter-spacing: -.03em; font-weight: 600; background: #fafbfb; }
 .map-placeholder p { max-width: 290px; margin-top: 10px; color: var(--muted); font-size: .875rem; line-height: 1.6; background: #fafbfb; }
 .placeholder-caption { margin-top: 30px; padding: 5px 8px; color: var(--muted); font-size: .7rem; background: #fafbfb; }
-.route-summary { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; padding: 22px 24px; }
-.route-summary h2 { margin-top: 4px; }
-.route-summary > p { color: var(--muted); font-size: .875rem; }
+.route-summary { min-width: 0; border-radius: 8px; }
 .project-note { margin-top: 22px; color: var(--muted); font-size: .75rem; line-height: 1.65; }
 
 @media (min-width: 800px) {

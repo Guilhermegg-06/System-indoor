@@ -4,14 +4,17 @@ interface LocationFieldProps {
   id: 'origin' | 'destination'
   label: string
   locations: readonly Location[]
+  value: string
+  onChange: (id: string) => void
+  error?: string
 }
 
-/** Somente apresentação: a seleção funcional pertence a uma próxima entrega. */
-export function LocationField({ id, label, locations }: LocationFieldProps) {
+export function LocationField({ id, label, locations, value, onChange, error }: LocationFieldProps) {
   return (
     <div className="location-field">
       <label htmlFor={id}>{label}</label>
-      <select id={id} defaultValue="" disabled>
+      <select id={id} value={value} onChange={event => onChange(event.target.value)}
+        aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}>
         <option value="">Selecionar {label.toLocaleLowerCase('pt-BR')}</option>
         {locations.map(location => (
           <option key={location.id} value={location.id}>
@@ -19,6 +22,7 @@ export function LocationField({ id, label, locations }: LocationFieldProps) {
           </option>
         ))}
       </select>
+      {error && <p className="field-error" id={`${id}-error`}>{error}</p>}
     </div>
   )
 }
