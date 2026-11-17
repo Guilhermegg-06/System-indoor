@@ -7,8 +7,11 @@ import { G1 } from './data/graphs/fixtures'
 import { findRoute } from './modules/navigation/findRoute'
 import type { Graph, RouteResult } from './modules/navigation/types'
 import { searchLocations } from './modules/search/searchLocations'
+import { VisualizationPanel } from './modules/visualization/VisualizationPanel'
+import { visualizationConfig } from './config/visualization'
+import type { VisualizationConfig } from './modules/visualization/types'
 
-export default function App({ graph = G1 }: { graph?: Graph }) {
+export default function App({ graph = G1, visualization = visualizationConfig }: { graph?: Graph; visualization?: VisualizationConfig }) {
   const [originId, setOriginId] = useState('')
   const [destinationId, setDestinationId] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -63,7 +66,7 @@ export default function App({ graph = G1 }: { graph?: Graph }) {
 
       <main id="main-content" tabIndex={-1}>
         <div className="intro">
-          <p className="eyebrow">Minishopping + parte do primeiro bloco</p>
+          <p className="eyebrow">Minishopping + Bloco A · Escopo inicial</p>
           <p className="intro-title">Seu caminho pelo campus.</p>
           <p className="preview-label">Navegação experimental · Dados fictícios</p>
         </div>
@@ -123,18 +126,9 @@ export default function App({ graph = G1 }: { graph?: Graph }) {
             </div>
           </section>
 
-          <section className="map-panel panel" aria-labelledby="map-title">
-            <div className="panel-heading">
-              <h2 id="map-title">Mapa / 3D</h2>
-              <span className="status-label">Em preparação</span>
-            </div>
-            <div className="map-placeholder">
-              <div className="placeholder-mark" aria-hidden="true"><span /><span /><span /></div>
-              <h3>Um espaço para explorar.</h3>
-              <p>Esta área receberá o mapa e a exploração 3D dos ambientes.</p>
-              <span className="placeholder-caption">Sem representação do campus nesta etapa</span>
-            </div>
-          </section>
+          <VisualizationPanel graph={graph} locations={mockLocations} config={visualization} route={result}
+            originNodeId={mockLocations.find(location => location.id === originId)?.nodeId}
+            destinationNodeId={mockLocations.find(location => location.id === destinationId)?.nodeId} />
 
           <div className="route-summary" ref={resultRef} tabIndex={-1}>
             <RouteResultView result={result} />

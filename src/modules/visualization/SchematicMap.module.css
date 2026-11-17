@@ -1,0 +1,20 @@
+.container { min-width: 0; }
+.notice, .legend, .message { padding: 12px 20px; font-size: .8rem; line-height: 1.6; color: var(--muted); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 20px 12px; }
+.toolbar button { min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--accent); cursor: pointer; }
+.toolbar button:disabled { opacity: .45; cursor: default; }
+.toolbar output { min-width: 48px; text-align: center; font-size: .85rem; }
+.scroll { overflow: auto; height: 360px; background: #fafbfb; border-block: 1px solid var(--line); }
+.map { display: block; max-width: none; }
+.connection, .blocked { stroke: #a6b3b9; stroke-width: 5; }
+.blocked { stroke-dasharray: 8 7; stroke: #687780; }
+.route { fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.node { fill: white; stroke: #5c686e; stroke-width: 2; }
+.origin { fill: #146351; stroke: white; stroke-width: 3; }
+.destination { fill: var(--accent); stroke: white; stroke-width: 3; }
+.label { fill: #202b31; font-size: 17px; font-weight: 600; paint-order: stroke; stroke: #fafbfb; stroke-width: 5px; stroke-linejoin: round; }
+.marker { fill: #7d2546; font-size: 15px; font-weight: 700; }
+.nodeCode { fill: #5c686e; font-size: 15px; }
+.legend { padding-bottom: 0; }
+@media (max-width: 600px) { .label { font-size: 26px; } .marker, .nodeCode { font-size: 24px; } }
+@media (max-width: 399px) { .notice, .legend, .message { padding-inline: 14px; } .toolbar { padding-inline: 14px; } }

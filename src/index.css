@@ -58,6 +58,11 @@ select[aria-invalid="true"] { border-color: #9c233b; }
 .map-panel { display: flex; flex-direction: column; overflow: hidden; }
 .panel-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
 .status-label { color: var(--muted); font-size: .72rem; }
+.view-switch { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 20px 8px; }
+.view-switch button { flex: 1; min-height: 44px; padding: 8px; background: white; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+.view-switch button[aria-pressed="true"] { background: #f3e8ed; color: var(--accent); border-color: var(--accent); }
+.view-switch button:disabled { opacity: .6; cursor: default; }
+.model-note { padding: 4px 20px; color: var(--muted); font-size: .8rem; line-height: 1.6; }
 .map-placeholder { flex: 1; min-height: 310px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 36px 24px; text-align: center; background-color: #fafbfb; background-image: linear-gradient(#e9edee 1px, transparent 1px), linear-gradient(90deg, #e9edee 1px, transparent 1px); background-size: 32px 32px; }
 .placeholder-mark { width: 72px; height: 62px; margin-bottom: 24px; display: flex; align-items: center; gap: 4px; transform: skewY(-8deg); }
 .placeholder-mark span { width: 22px; height: 46px; background: #edf0f1; border: 1px solid #bfc9cd; border-radius: 2px; }

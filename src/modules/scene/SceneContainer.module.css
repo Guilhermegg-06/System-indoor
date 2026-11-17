@@ -1,13 +1,15 @@
 .container {
   min-width: 0;
+  padding: 20px;
 }
 
 .viewport {
-  display: grid;
-  place-items: center;
   min-height: 16rem;
-  padding: 1rem;
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
-  text-align: center;
+  margin-top: 12px;
+  line-height: 1.6;
 }
+.viewer { min-width: 0; }
+.viewer p, .note { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.viewer button { min-height: 44px; margin-block: 12px; padding: 8px 12px; background: white; color: var(--accent); border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+.canvas { height: 400px; width: 100%; background: #f4f6f6; margin-bottom: 12px; }
+@media (max-width: 600px) { .canvas { height: 320px; } }
