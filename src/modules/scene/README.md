@@ -1,73 +1,27 @@
-# Fronteira da cena — 3D-01 (#23)
+# Visualizador de modelo externo
 
-Esta entrega prepara o módulo isolado sobre a main, sem depender de levantamento
-físico nem da pesquisa funcional. Usa somente dados fictícios. Não há renderizador
-3D instalado: o contêiner informa explicitamente a indisponibilidade.
+`SceneContainer` mantém `graph` e `route` e acrescenta `modelUrl` e `spatialPositions` opcionais. Não calcula rotas, não importa fixtures e não altera os dados. Ausência de grafo/modelo, carregamento e falha têm mensagens acessíveis. Erros de arquivo ou WebGL ficam isolados; o usuário pode voltar ao mapa.
 
-## Ponto de montagem
+## Entrega do modelo pela equipe
 
-`SceneContainer.tsx` é a entrada visual, com contrato em `types.ts`.
-Após integrar o layout da PR #35, o componente que compõe a tela deve montá-lo na
-área de visualização definida pelo layout:
+1. Coloque o arquivo real em `public/models/`. Exemplo de caminho futuro: `public/models/campus.glb`; nenhum arquivo de exemplo foi criado.
+2. Em `src/config/visualization.ts`, troque `modelUrl: null` pelo caminho `/models/campus.glb`. Para glTF, mantenha também buffers e texturas referenciados. URLs externas precisam usar HTTPS e permitir CORS.
+3. Abra **Visualização 3D**. A câmera enquadra o arquivo; arraste para girar, use roda/pinça para zoom e dois dedos para deslocar. **Reenquadrar modelo** restaura a câmera. Isso não implementa caminhada ou colisões.
+4. Após validar a planta e a transformação do modelo, preencha `spatialPositions` por `nodeId`, no mesmo sistema x/y/z do arquivo. Todos os nós do percurso precisam de coordenadas finitas. O adaptador devolve uma sequência completa ou nenhuma linha; não converte posições 2D nem pesos em metros.
 
-```tsx
-import SceneContainer from './modules/scene/SceneContainer'
+O GLTFLoader padrão atende GLB/glTF sem decodificadores externos. Exportações com Draco, Meshopt ou texturas KTX2 exigem configuração adicional e não foram homologadas. Prefira exportação inicial sem essas compressões.
 
-// Dentro da área de visualização, com dados recebidos pelo integrador:
-<SceneContainer graph={graph} route={routeResult} />
-```
+## Separação dos dados
 
-Este exemplo não altera App. A montagem no aplicativo fica para depois da
-integração da PR #35. Esta entrega não altera `App.tsx` nem estilos globais.
-O elemento interno `data-scene-viewport` reserva o ponto onde o futuro renderizador
-substituirá a mensagem. O contêiner tem altura mínima e ocupa a largura disponível;
-o layout externo decide sua área.
+- `schematicPositions`: coordenadas de desenho, sem escala física.
+- `spatialPositions`: vazio até a validação das posições no modelo.
+- `preliminaryMeasurements`: 34 m e largura típica 2,56 m do Bloco A; referências 24,14 m, 12,43 m, 2,96 m e 2,48 m sem trecho associado. Todas preliminares, sem associação ao grafo.
+- Escopo físico: Minishopping e Bloco A. Bloco B excluído. O catálogo original permanece fictício.
 
-## Propriedades mínimas
+Three.js/Fiber ficam em importação dinâmica, fora do carregamento inicial do mapa. O Canvas renderiza sob demanda e limita a densidade de pixels a 1,5. Controles são liberados ao desmontar; o modelo usa o cache do `useLoader`.
 
-| Propriedade | Tipo | Responsabilidade |
-| --- | --- | --- |
-| `graph` | `Graph \| null` (obrigatória) | Grafo fictício fornecido pelo integrador; `null` indica ausência de dados. |
-| `route` | `RouteResult \| null` (opcional) | Resultado já calculado; omitido ou `null` indica nenhuma rota fornecida. |
+## Limites verificados
 
-Os tipos vêm de `navigation/types.ts` por imports exclusivamente de tipo. A cena
-não importa fixtures, não busca locais, não calcula rotas e não modifica entradas.
-Nesta etapa `route` apenas estabelece o contrato; nenhum resultado é desenhado.
-Um grafo fornecido, inclusive vazio, não torna o visualizador disponível.
+Testes de estados do contêiner usam um visualizador simulado, sem WebGL. O smoke de produção testa o mapa sem modelo e o carregador real com arquivo ausente. **Não existe modelo navegável entregue nem validação visual de um modelo real.** Enquadramento, materiais, rota espacial e desempenho precisam ser conferidos quando a equipe entregar o arquivo.
 
-Coordenadas dos nós são opcionais no contrato atual. A futura integração deverá
-validar coordenadas finitas e resolver IDs da rota antes de desenhar. Ausência de
-coordenadas não autoriza inventar geometria da faculdade. Pesos não representam
-metros ou minutos. Resultados diferentes de `ok` não devem gerar linha de rota;
-mensagens textuais de navegação permanecem sob responsabilidade da UI.
-
-## Escolha de integração
-
-Adotar React Three Fiber como renderizador React de Three.js quando houver uma
-cena a implementar. Essa opção acompanha a composição e o ciclo de vida React do
-projeto. Three.js fica restrito à cena; o motor permanece independente de React e
-WebGL. A [documentação oficial](https://r3f.docs.pmnd.rs/getting-started/introduction)
-descreve essa integração e a compatibilidade necessária entre versões de React e
-Fiber. Conferir versões compatíveis no momento da instalação.
-
-Nenhuma biblioteca foi adicionada: instalar Three.js e Fiber sem consumo
-aumentaria dependências sem habilitar comportamento. Quando implementado, o
-renderizador poderá hospedar `Canvas` no ponto reservado e deverá preservar uma
-mensagem acessível para ausência de suporte WebGL ou falha de inicialização.
-O estado atual não detecta WebGL porque não o utiliza.
-
-## Validação e limitações
-
-`SceneContainer.test.tsx` verifica identificação acessível, indisponibilidade sem
-grafo, atualização da mensagem ao receber dados e preservação de entradas imutáveis.
-Executar `npm run lint`, `npm run typecheck`, `npm test` e `npm run build`.
-
-Validação local em 16/11/2026: lint, typecheck, 41 testes (4 arquivos) e build
-passaram. No PowerShell deste ambiente foi usado `npm.cmd` porque a política de
-execução bloqueia o wrapper `npm.ps1`.
-
-Não há validação de canvas, WebGL, desempenho mobile ou mapa real. Cenário fictício
-(#24), movimentação (#25), colisões (#26) e exibição/integração da rota (#27/#31)
-permanecem em suas próprias entregas. A API poderá ser ampliada nessas tarefas
-quando houver necessidades concretas.
-
+Referências: [Canvas/Fiber](https://r3f.docs.pmnd.rs/api/canvas), [GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html), [OrbitControls](https://threejs.org/docs/pages/OrbitControls.html).

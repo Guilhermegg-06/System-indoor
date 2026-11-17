@@ -17,7 +17,7 @@ describe('SceneContainer', () => {
   it('keeps the unavailable state when graph data arrives', () => {
     const { rerender } = render(<SceneContainer graph={null} />)
     rerender(<SceneContainer graph={{ nodes: [], edges: [] }} />)
-    expect(screen.getByRole('status').textContent).toContain('O visualizador ainda não foi integrado')
+    expect(screen.getByRole('status').textContent).toContain('Modelo 3D ainda não fornecido')
     expect(screen.queryByText(/Nenhum grafo fictício/)).toBeNull()
   })
 

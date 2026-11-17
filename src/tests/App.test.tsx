@@ -93,13 +93,30 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
     expect(screen.getByLabelText(label).getAttribute('aria-invalid')).not.toBe('true')
   })
 
-  it('reserva mapa e resumo, sem inventar trajeto ou representação real', () => {
+  it('identifica o mapa como esquemático e mantém resultado inicialmente vazio', () => {
     render(<App />)
     const map = screen.getByRole('region', { name: 'Mapa / 3D' })
-    expect(within(map).getByText('Sem representação do campus nesta etapa')).toBeTruthy()
+    expect(within(map).getByRole('img', { name: /Mapa esquemático/ })).toBeTruthy()
+    expect(within(map).getByText(/Planta real não validada/)).toBeTruthy()
     const summary = screen.getByRole('region', { name: 'Resultado da rota' })
     expect(within(summary).getByText('Nenhuma rota calculada.')).toBeTruthy()
   })
+})
+
+it('liga pesquisa e seleção ao mapa, sem depender de um modelo 3D', () => {
+  const { container } = render(<App />)
+  expect(screen.getByRole('button', { name: 'Visualização 3D' })).toHaveProperty('disabled', true)
+  expect(screen.getByText(/Modelo 3D ainda não fornecido/)).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
+  fireEvent.change(screen.getByRole('searchbox'), { target: { value: 's101' } })
+  fireEvent.click(screen.getByRole('button', { name: /Sala 101/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+  expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe('E0 C1 C2 S101')
+  fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'sala-102' } })
+  expect(container.querySelector('[data-route]')).toBeNull()
+  expect(container.querySelector('[data-node-id="S102"]')?.textContent).toContain('Destino')
+  fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+  expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe('E0 C1 C2 S102')
 })
 
 function selectJourney(destination = 'sala-101') {
