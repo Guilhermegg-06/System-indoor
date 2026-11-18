@@ -13,7 +13,7 @@
 
 `src/data/campus.ts` separa catálogo (`id` → `nodeId`), metadados, conexões, desenho, fotos, medições e modelos. O motor `findRoute` e os grafos originais não foram alterados.
 
-`src/data/blocoA.floorPlan.ts` contém a geometria visual. O circuito anterior A1-C1…C4 foi preservado, com oito ramais demonstrativos para as portas das salas. Cada sala usa um `Location.id` próprio ligado a um `nodeId` do mesmo grafo. O adaptador existente valida a rota; `floorPlanGeometry` transforma somente esses segmentos em linhas ortogonais, sem calcular outro caminho. Pontos de passagem gráficos não são nós adicionais nem medidas físicas. Sanitários e pátio permanecem sem novas passagens.
+`src/data/blocoA.floorPlan.ts` contém a geometria visual. O circuito A1-C1…C4 e os ramais das salas foram preservados, subdividindo o corredor esquerdo com `A1-WC-ACESSO`. O ponto `A1-WC` agora representa chegada ao conjunto sanitário pelo corredor, fora da parede, sem entrar nos ambientes. Sua posição é demonstrativa e não homologa portas independentes. Cada local usa um `Location.id` próprio ligado a um `nodeId` do mesmo grafo. `floorPlanGeometry` somente desenha os segmentos validados pelo adaptador existente. O pátio continua não transitável.
 
 | Informação | Situação |
 | --- | --- |
@@ -26,7 +26,7 @@
 
 `confirmed` identifica informação validada, `approximate` identifica estimativa e `pending` identifica ausência de levantamento. A confirmação do pavimento das fotos não confirma coordenadas. Os identificadores A1-C1 a A1-C4 são referências esquemáticas, não numeração oficial de corredores.
 
-Minishopping → exterior → térreo é uma demonstração provisória. O circuito do primeiro andar é separado. Sanitários e referência de fotografias não têm arestas: portas e acesso exato estão pendentes. O motor retorna sem caminho quando faltam ligações, em vez de criar passagens.
+Minishopping → exterior → térreo é uma demonstração provisória sobre o passeio, com nós de saída e curva. `src/data/campusSite.ts` contém a implantação vetorial própria baseada no exemplo aéreo fornecido, sem reproduzir screenshots de mapas no bundle. Não modela interiores do Minishopping ou do térreo. O circuito do primeiro andar continua separado. A referência de fotos permanece isolada intencionalmente, marcada como pendente de localização e removida apenas das opções de navegação, com consulta própria. O motor retorna sem caminho entre pisos; nenhuma escada ou elevador foi inventado. Catálogo auditado e evidências: [VALIDACAO_ROTAS_COMPLETAS.md](VALIDACAO_ROTAS_COMPLETAS.md).
 
 ## Fotografias
 
