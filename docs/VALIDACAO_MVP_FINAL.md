@@ -1,6 +1,6 @@
 # Validação final do MVP 2D — 18/11/2026
 
-Base: `main b3630c2`, incluindo PRs #43 e #44. Trabalho isolado em `release/mvp-2d-final`; nenhuma alteração válida dos outros checkouts foi sobrescrita. O checkout anterior da planta (`275a405`) não continha a implantação da PR #44. A verificação usa o build desta branch em `http://127.0.0.1:5185/`, identificado no DOM por `data-release="mvp-2d-final"` e bundle `index-SaGV9YUJ.js`.
+Base: `main b3630c2`, incluindo PRs #43 e #44. Trabalho isolado em `release/mvp-2d-final`; nenhuma alteração válida dos outros checkouts foi sobrescrita. O checkout anterior da planta (`275a405`) não continha a implantação da PR #44. A verificação usa o build desta branch em `http://127.0.0.1:5185/`, identificado no DOM por `data-release="mvp-2d-final"` e bundle final `index-Bh_tjtyn.js`. As capturas 01–18 são do build `index-SaGV9YUJ.js`; o ajuste final de identificação acessível dos sanitários foi verificado no build final, com a captura 19.
 
 ## Resultado funcional
 
@@ -14,7 +14,7 @@ Base: `main b3630c2`, incluindo PRs #43 e #44. Trabalho isolado em `release/mvp-
 
 ## Verificações executadas
 
-Node 22.23.5 / npm 10.9.9: `npm ci`, lint, typecheck, **163 testes (18 arquivos)**, auditoria e build aprovados. Baseline anterior: 146 testes. `npm run preview -- --host 127.0.0.1 --port 5185 --strictPort` usado para a validação real.
+Node 22.23.5 / npm 10.9.9: `npm ci`, lint, typecheck, **164 testes (18 arquivos)**, auditoria e build aprovados. Baseline anterior: 146 testes. `npm run preview -- --host 127.0.0.1 --port 5185 --strictPort` usado para a validação real.
 
 Auditoria reproduzível: `npm run audit:campus`. Relatório integral com catálogo, acessos, conexões e todos os pares: [connectivity.json](evidencias-mvp/connectivity.json).
 
@@ -56,6 +56,8 @@ Foram observados visualmente campus, Minishopping, exterior, ambos os pisos, 09�
 - [16-minishopping-mobile-390.jpg](evidencias-mvp/16-minishopping-mobile-390.jpg)
 - [17-campus-mobile-320.jpg](evidencias-mvp/17-campus-mobile-320.jpg)
 - [18-zoom-200-mobile-320.jpg](evidencias-mvp/18-zoom-200-mobile-320.jpg)
+
+- [19-sanitarios-terreo.jpg](evidencias-mvp/19-sanitarios-terreo.jpg)
 
 ## Limitações remanescentes
 
