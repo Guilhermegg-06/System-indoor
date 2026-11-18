@@ -95,3 +95,13 @@ it('mantém a rota entre áreas ao alternar as etapas e ao inverter origem e des
   expect(screen.getByLabelText('Origem')).toHaveProperty('value', 'a1-sala-13')
   expect(container.querySelector('[data-floor-plan="bloco-a-primeiro-andar"]')).toBeTruthy()
 })
+
+it('identifica o acesso aos sanitários do térreo e aceita a seleção pelo teclado', () => {
+  const { container } = render(<App />)
+  fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a0-sala-01' } })
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Sanitários térreo · acesso demonstrativo' }), { key: 'Enter' })
+  expect(screen.getByLabelText('Destino')).toHaveProperty('value', 'a0-sanitarios')
+  fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
+  expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toContain('A0-WC-ACESSO A0-WC')
+  expect(screen.queryByRole('button', { name: 'Sanitários A1 · acesso demonstrativo' })).toBeNull()
+})
