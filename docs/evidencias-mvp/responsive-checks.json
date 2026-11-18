@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "client": 390,
+      "scroll": 390,
+      "view": "minishopping",
+      "w": 390
+    },
+    {
+      "client": 320,
+      "scroll": 320,
+      "view": "campus",
+      "w": 320
+    },
+    {
+      "client": 1440,
+      "scroll": 1440,
+      "view": "campus",
+      "w": 1440
+    },
+    {
+      "client": 768,
+      "scroll": 768,
+      "view": "route-ms-13",
+      "w": 768
+    }
+  ],
+  "consoleErrors": [],
+  "build": "index-SaGV9YUJ.js"
+}
