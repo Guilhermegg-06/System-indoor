@@ -163,7 +163,8 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
           const location = locations.find(place => place.nodeId === node.id)
           const choose = () => { if (location) { onLocationSelect?.(selectionTarget, location.id); if (selectionTarget === 'origin') setSelectionTarget('destination') } }
           return <g key={node.id} data-node-id={node.id} transform={`translate(${node.point.x} ${node.point.y})`}
-            role={isWc ? 'button' : undefined} tabIndex={isWc ? 0 : undefined} aria-label={isWc ? 'Sanitários A1 · acesso demonstrativo' : undefined}
+            role={location && (isWc || isTransfer) ? 'button' : undefined} tabIndex={location && (isWc || isTransfer) ? 0 : undefined}
+            aria-label={location && (isWc || isTransfer) ? `${location.name} · acesso demonstrativo` : undefined}
             onClick={choose} onKeyDown={event => { if (location && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); choose() } }}>
             <title>{node.name}{node.id === originNodeId ? ' — Origem' : ''}{node.id === destinationNodeId ? ' — Destino' : ''}</title>
             {isWc && <><circle r={27} fill="transparent" /><circle r={12} fill="#fff" stroke="#536d85" strokeWidth={4} /><text x={-15} y={-32} className={styles.pneLabel}>ACESSO WC</text></>}
