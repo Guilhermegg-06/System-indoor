@@ -10,15 +10,42 @@ import { searchLocations } from './modules/search/searchLocations'
 import { VisualizationPanel } from './modules/visualization/VisualizationPanel'
 import { visualizationConfig } from './config/visualization'
 import type { VisualizationConfig } from './modules/visualization/types'
+import { campusGraph, campusLocations, campusMetadata, campusModels } from './data/campus'
+import { getCampusView, photosForLocation } from './modules/campus/selectors'
+import { CampusViewControls } from './modules/campus/CampusViewControls'
+import { LocationReference } from './modules/campus/LocationReference'
+import type { MapArea } from './modules/campus/types'
 
-export default function App({ graph = G1, visualization = visualizationConfig }: { graph?: Graph; visualization?: VisualizationConfig }) {
+interface AppProps { graph?: Graph; visualization?: VisualizationConfig; initialDataset?: 'campus' | 'demo' }
+
+export default function App({ graph, visualization = visualizationConfig, initialDataset = 'campus' }: AppProps) {
+  const [dataset, setDataset] = useState(initialDataset)
+  return <NavigationApp key={dataset} graph={graph ?? (dataset === 'campus' ? campusGraph : G1)} visualization={visualization}
+    isCampus={dataset === 'campus'} onDatasetChange={setDataset} />
+}
+
+function NavigationApp({ graph, visualization, isCampus, onDatasetChange }: {
+  graph: Graph; visualization: VisualizationConfig; isCampus: boolean; onDatasetChange: (dataset: 'campus' | 'demo') => void
+}) {
+  const locations = isCampus ? campusLocations : mockLocations
+  const [area, setArea] = useState<MapArea>('campus')
+  const [floor, setFloor] = useState(0)
+  const [inspectedLocationId, setInspectedLocationId] = useState('')
   const [originId, setOriginId] = useState('')
   const [destinationId, setDestinationId] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<RouteResult | null>(null)
   const resultRef = useRef<HTMLDivElement>(null)
-  const matches = searchLocations(mockLocations, query)
+  const matches = searchLocations(locations, query)
+  const campusView = getCampusView(area, floor)
+  const model = campusModels.find(item => item.areaId === area && item.floorId === (area === 'minishopping' ? 'ms-0' : floor === 1 ? 'a-1' : 'a-0'))
+  const mapConfig: VisualizationConfig = isCampus ? { ...visualization, modelUrl: model?.url ?? null,
+    schematicPositions: campusView.positions, spatialPositions: {}, mapNotice: campusView.notice,
+    mapTitle: `Mapa esquemático · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`, regions: campusView.regions } : visualization
+  const mapGraph = isCampus ? campusView.graph : graph
+  const routePhotoLocation = result?.status === 'ok' && isCampus
+    ? locations.find(place => result.path.includes(place.nodeId) && photosForLocation(place.id).length > 0) : undefined
 
   // Aguarda o percurso renderizar para trazer o resultado inteiro à tela no celular.
   useEffect(() => {
@@ -30,6 +57,8 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
     else setDestinationId(id)
     setSubmitted(false)
     setResult(null)
+    setInspectedLocationId(id)
+    if (isCampus && locations.find(place => place.id === id)?.floor === 1) { setArea('bloco-a'); setFloor(1) }
   }
 
   function swapLocations() {
@@ -37,6 +66,7 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
     setDestinationId(originId)
     setSubmitted(false)
     setResult(null)
+    setInspectedLocationId(originId)
   }
 
   function calculateRoute() {
@@ -46,11 +76,16 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
       document.getElementById(!originId ? 'origin' : 'destination')?.focus()
       return
     }
-    const origin = mockLocations.find(location => location.id === originId)
-    const destination = mockLocations.find(location => location.id === destinationId)
-    setResult(origin && destination
+    const origin = locations.find(location => location.id === originId)
+    const destination = locations.find(location => location.id === destinationId)
+    const next = origin && destination
       ? findRoute(graph, origin.nodeId, destination.nodeId)
-      : { status: 'invalid-location', path: [] })
+      : { status: 'invalid-location' as const, path: [] as [] }
+    setResult(next)
+    if (isCampus && next.status === 'ok') {
+      setArea(origin?.floor === 1 ? 'bloco-a' : 'campus')
+      setFloor(origin?.floor ?? 0)
+    }
   }
 
   return (
@@ -68,7 +103,13 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
         <div className="intro">
           <p className="eyebrow">Minishopping + Bloco A · Escopo inicial</p>
           <p className="intro-title">Seu caminho pelo campus.</p>
-          <p className="preview-label">Navegação experimental · Dados fictícios</p>
+          <p className="preview-label">{isCampus ? 'Referências reais · Mapa e rotas provisórios' : 'Navegação experimental · Dados fictícios'}</p>
+          <div className="dataset-switch"><label htmlFor="navigation-data">Dados da navegação</label>
+            <select id="navigation-data" value={isCampus ? 'campus' : 'demo'} onChange={event => onDatasetChange(event.target.value as 'campus' | 'demo')}>
+              <option value="campus">Campus · referências e esquema provisório</option>
+              <option value="demo">Demonstração original · 6 locais fictícios</option>
+            </select>
+          </div>
         </div>
 
         <div className="workspace">
@@ -107,10 +148,10 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
             <form onSubmit={event => { event.preventDefault(); calculateRoute() }}>
               <fieldset className="route-fields" aria-describedby="preview-note">
                 <legend>Origem e destino</legend>
-                <LocationField id="origin" label="Origem" locations={mockLocations} value={originId}
+              <LocationField id="origin" label="Origem" locations={locations} value={originId}
                   onChange={id => changeLocation('origin', id)} error={submitted && !originId ? 'Selecione a origem.' : undefined} />
                 <button className="swap-button" type="button" onClick={swapLocations}>Inverter origem e destino</button>
-                <LocationField id="destination" label="Destino" locations={mockLocations} value={destinationId}
+              <LocationField id="destination" label="Destino" locations={locations} value={destinationId}
                   onChange={id => changeLocation('destination', id)} error={submitted && !destinationId ? 'Selecione o destino.' : undefined} />
               </fieldset>
 
@@ -121,22 +162,29 @@ export default function App({ graph = G1, visualization = visualizationConfig }:
             <p className="manual-origin">A origem é escolhida manualmente.</p>
 
             <div className="catalog-note">
-              <span className="catalog-count">{mockLocations.length.toString().padStart(2, '0')}</span>
-              <p>locais de exemplo<span>Para desenvolvimento da interface</span></p>
+              <span className="catalog-count">{locations.length.toString().padStart(2, '0')}</span>
+              <p>{isCampus ? 'referências de locais' : 'locais de exemplo'}<span>{isCampus ? 'Sem cadastro de salas ou portas reais' : 'Para desenvolvimento da interface'}</span></p>
             </div>
           </section>
 
-          <VisualizationPanel graph={graph} locations={mockLocations} config={visualization} route={result}
-            originNodeId={mockLocations.find(location => location.id === originId)?.nodeId}
-            destinationNodeId={mockLocations.find(location => location.id === destinationId)?.nodeId} />
+          <VisualizationPanel key={isCampus ? campusView.id : 'demo'} graph={mapGraph} locations={locations} config={mapConfig} route={result}
+            originNodeId={locations.find(location => location.id === originId)?.nodeId}
+            destinationNodeId={locations.find(location => location.id === destinationId)?.nodeId}
+            contextControls={isCampus && <CampusViewControls area={area} floor={floor} onAreaChange={next => { setArea(next); setFloor(0) }} onFloorChange={setFloor} />} />
 
           <div className="route-summary" ref={resultRef} tabIndex={-1}>
             <RouteResultView result={result} />
+            {isCampus && <>
+              {routePhotoLocation && <button type="button" className="route-photo-button" onClick={() => setInspectedLocationId(routePhotoLocation.id)}>Ver fotos de referência do percurso</button>}
+              <LocationReference location={locations.find(place => place.id === inspectedLocationId)} />
+              {inspectedLocationId && <p className="reference-caption">{campusMetadata[inspectedLocationId]?.source} Coordenadas métricas: pendentes.</p>}
+            </>}
           </div>
         </div>
 
         <footer className="project-note">
-          Projeto acadêmico · Os locais de exemplo não representam um levantamento real da instituição.
+          {isCampus ? 'Projeto acadêmico · Fotos reais do primeiro andar; posições e passagens ainda não homologadas. Não há conexão entre pisos cadastrada. Bloco B fora do escopo.'
+            : 'Projeto acadêmico · Os locais de exemplo não representam um levantamento real da instituição.'}
         </footer>
       </main>
     </>
