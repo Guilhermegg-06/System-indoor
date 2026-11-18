@@ -43,3 +43,15 @@ export function toSpatialRoute(graph: Graph, route: RouteResult | null | undefin
   }
   return points
 }
+
+/** Validate the complete route, then select a contiguous segment in this drawing frame. */
+export function projectRouteToView(graph: Graph, viewGraph: Graph, route: RouteResult | null): RouteResult | null {
+  if (route?.status !== 'ok') return route
+  const path = routeIds(graph, route)
+  if (!path.length) return { status: 'invalid-graph', path: [] }
+  const ids = new Set(viewGraph.nodes.map(node => node.id))
+  const start = path.findIndex(id => ids.has(id))
+  if (start < 0) return route // Renderer explains the missing stage; it never draws this path.
+  const end = path.findIndex((id, index) => index > start && !ids.has(id))
+  return { status: 'ok', path: [...path.slice(start, end < 0 ? undefined : end)], cost: route.cost }
+}

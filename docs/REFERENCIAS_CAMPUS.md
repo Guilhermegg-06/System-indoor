@@ -7,7 +7,7 @@
 - A imagem “Planta Baixa Técnica do Bloco A” é um redesenho por IA. Na Missão 01, passou a orientar somente a representação visual simplificada do anel de circulação, dos sanitários e do pátio. Não valida medidas, coordenadas físicas, quantidade ou dimensões de salas, nem a posição exata de portas.
 - O usuário indicou a sala 09 na parte inferior direita, com a numeração seguindo para a esquerda, pela lateral esquerda e parte superior, até a sala 16 na lateral direita. Para o MVP, as salas 09–16 são distribuídas em pares por lado. Essa distribuição intermediária e os acessos são hipóteses de apresentação, identificadas como aproximadas na interface e nos metadados.
 - A referência aérea do Bing orienta apenas a relação geral entre setores. O screenshot não integra a aplicação. O desenho vetorial é próprio e não tem precisão cartográfica.
-- O térreo tem somente a referência do edifício. Não replica o primeiro andar. Não há escadas, conexões entre pisos ou Bloco B no grafo.
+- Decisão do responsável na missão final: o térreo replica provisoriamente a organização do primeiro andar, com salas 01–08 e IDs próprios. A transição vertical é simulada para demonstração acadêmica; sua posição não representa uma escada real nem garante acessibilidade. Bloco B permanece fora do escopo.
 
 ## Dados e unidades
 
@@ -26,7 +26,7 @@
 
 `confirmed` identifica informação validada, `approximate` identifica estimativa e `pending` identifica ausência de levantamento. A confirmação do pavimento das fotos não confirma coordenadas. Os identificadores A1-C1 a A1-C4 são referências esquemáticas, não numeração oficial de corredores.
 
-Minishopping → exterior → térreo é uma demonstração provisória sobre o passeio, com nós de saída e curva. `src/data/campusSite.ts` contém a implantação vetorial própria baseada no exemplo aéreo fornecido, sem reproduzir screenshots de mapas no bundle. Não modela interiores do Minishopping ou do térreo. O circuito do primeiro andar continua separado. A referência de fotos permanece isolada intencionalmente, marcada como pendente de localização e removida apenas das opções de navegação, com consulta própria. O motor retorna sem caminho entre pisos; nenhuma escada ou elevador foi inventado. Catálogo auditado e evidências: [VALIDACAO_ROTAS_COMPLETAS.md](VALIDACAO_ROTAS_COMPLETAS.md).
+Minishopping → exterior → térreo é demonstrado sobre os passeios da implantação própria em `src/data/campusSite.ts`. A chegada ao edifício muda para o referencial interno pela conexão de entrada provisória; nenhuma linha é traçada entre coordenadas de vistas diferentes. A ligação térreo/primeiro andar é explicitamente simulada, conforme autorização do responsável, e apresentada em etapas separadas. Não há levantamento interno do Minishopping. A referência de fotos permanece isolada intencionalmente, fora das opções de destinos. Evidências e auditoria atuais: [VALIDACAO_MVP_FINAL.md](VALIDACAO_MVP_FINAL.md).
 
 ## Fotografias
 

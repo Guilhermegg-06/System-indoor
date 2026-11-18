@@ -29,6 +29,10 @@ function Door({ room }: { room: PlanRoom }) {
 }
 
 export function FloorPlanMap({ plan, graph, locations, positions, route, originNodeId, destinationNodeId, notice, onLocationSelect }: Props) {
+  const floor = plan.floor ?? 1
+  const prefix = `A${floor}`
+  const floorName = floor === 0 ? 'Térreo' : 'Primeiro andar'
+  const range = floor === 0 ? '01–08' : '09–16'
   const [zoom, setZoom] = useState(1)
   const [selectionTarget, setSelectionTarget] = useState<'origin' | 'destination'>('destination')
   const viewport = useRef<HTMLDivElement>(null)
@@ -39,7 +43,7 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
   const routePoints = floorPlanRoutePoints(view.route, plan)
   const selectedName = (id?: string) => locations.find(location => location.nodeId === id)?.name ?? 'Não definida'
   const routeMessage = route?.status === 'ok'
-    ? view.route.length > 0 ? 'Percurso destacado pelos corredores até a porta. Siga a sequência no resultado da rota.'
+    ? route.path.length === 1 && graph.nodes.some(node => node.id === route.path[0]) ? 'Chegada ou saída desta etapa. Continue pela próxima vista da rota.' : view.route.length > 0 ? 'Percurso destacado pelos corredores até a porta. Siga a sequência no resultado da rota.'
       : route.path.some(id => !graph.nodes.some(node => node.id === id))
         ? 'A rota está em outra área ou andar. Selecione a vista correspondente.'
         : 'Percurso sem coordenadas ou conexões válidas para exibição.'
@@ -61,8 +65,8 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
 
   return <div className={styles.container}>
     <div className={styles.heading}>
-      <div><p className={styles.eyebrow}>PLANTA DO PAVIMENTO</p><h3>Bloco A <span>/ Primeiro andar</span></h3></div>
-      <span className={styles.floorBadge}>01</span>
+      <div><p className={styles.eyebrow}>PLANTA DO PAVIMENTO</p><h3>Bloco A <span>/ {floorName}</span></h3></div>
+      <span className={styles.floorBadge}>{floor === 0 ? '00' : '01'}</span>
     </div>
     {onLocationSelect && <div className={styles.selection}>
       <div className={styles.selectionButtons} role="group" aria-label="Selecionar na planta">
@@ -74,7 +78,7 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
       <p>Toque em uma sala para definir {selectionTarget === 'origin' ? 'a origem' : 'o destino'}.</p>
     </div>}
     <div className={styles.toolbar} role="group" aria-label="Ajustes do mapa">
-      <span className={styles.planCaption}>Salas 09–16 · circulação em anel</span>
+      <span className={styles.planCaption}>Salas {range} · circulação em anel</span>
       <div className={styles.zoomControls}>
         <button type="button" aria-label="Reduzir mapa" disabled={zoom <= 1} onClick={() => setZoom(value => Math.max(1, value - .25))}>−</button>
         <output aria-label="Zoom do mapa">{Math.round(zoom * 100)}%</output>
@@ -94,7 +98,7 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
       }} onPointerUp={() => { drag.current = null }} onPointerCancel={() => { drag.current = null }}>
       <svg className={styles.plan} style={{ width: `${zoom * 100}%` }} viewBox={`0 0 ${plan.width} ${plan.height}`}
         role="group" aria-labelledby={titleId} data-floor-plan={plan.id}>
-        <title id={titleId}>Planta interativa do Bloco A · Primeiro andar · Salas 09 a 16</title>
+        <title id={titleId}>Planta interativa do Bloco A · {floorName} · Salas {range}</title>
         <defs><pattern id={gridId} width={40} height={40} patternUnits="userSpaceOnUse">
           <path d="M 40 0 H 0 V 40" fill="none" stroke="#e9edef" strokeWidth={1} />
         </pattern></defs>
@@ -120,7 +124,7 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
           <text x={370} y={660} textAnchor="middle" className={styles.pneLabel}>PNE</text>
           <text x={126} y={890} textAnchor="middle" className={styles.orientation}>SEM ESCALA</text>
           <text x={1150} y={890} textAnchor="middle" className={styles.orientation}>BLOCO A</text>
-          <text x={1150} y={916} textAnchor="middle" className={styles.orientation}>1º ANDAR</text>
+          <text x={1150} y={916} textAnchor="middle" className={styles.orientation}>{floor === 0 ? 'TÉRREO' : '1º ANDAR'}</text>
         </g>
         {plan.rooms.filter(room => view.nodes.some(node => node.id === room.nodeId)).map(room => {
           const origin = originNodeId === room.nodeId
@@ -152,15 +156,20 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
             <polyline data-route={view.route.map(node => node.id).join(' ')} points={pointList(routePoints)} className={styles.route} />
           </>}
         </g>
-        {view.nodes.filter(node => node.id.startsWith('A1-C') || node.id === 'A1-WC').map(node => {
+        {view.nodes.filter(node => node.id.startsWith(`${prefix}-C`) || node.id === `${prefix}-WC` || node.id === `${prefix}-TRANSFER` || node.id === 'A0-ENTRADA').map(node => {
           const selected = node.id === originNodeId || node.id === destinationNodeId
-          const isWc = node.id === 'A1-WC'
-          const choose = () => { if (isWc) { onLocationSelect?.(selectionTarget, 'a1-sanitarios'); if (selectionTarget === 'origin') setSelectionTarget('destination') } }
+          const isWc = node.id === `${prefix}-WC`
+          const isTransfer = node.id === `${prefix}-TRANSFER`
+          const location = locations.find(place => place.nodeId === node.id)
+          const choose = () => { if (location) { onLocationSelect?.(selectionTarget, location.id); if (selectionTarget === 'origin') setSelectionTarget('destination') } }
           return <g key={node.id} data-node-id={node.id} transform={`translate(${node.point.x} ${node.point.y})`}
-            role={isWc ? 'button' : undefined} tabIndex={isWc ? 0 : undefined} aria-label={isWc ? 'Sanitários A1 · acesso demonstrativo' : undefined}
-            onClick={choose} onKeyDown={event => { if (isWc && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); choose() } }}>
+            role={location && (isWc || isTransfer) ? 'button' : undefined} tabIndex={location && (isWc || isTransfer) ? 0 : undefined}
+            aria-label={location && (isWc || isTransfer) ? `${location.name} · acesso demonstrativo` : undefined}
+            onClick={choose} onKeyDown={event => { if (location && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); choose() } }}>
             <title>{node.name}{node.id === originNodeId ? ' — Origem' : ''}{node.id === destinationNodeId ? ' — Destino' : ''}</title>
             {isWc && <><circle r={27} fill="transparent" /><circle r={12} fill="#fff" stroke="#536d85" strokeWidth={4} /><text x={-15} y={-32} className={styles.pneLabel}>ACESSO WC</text></>}
+            {isTransfer && <><rect x={-15} y={-15} width={30} height={30} rx={5} fill="#fff" stroke="#97264f" strokeWidth={3} /><text x={0} y={6} textAnchor="middle" fontSize={20} fill="#97264f">↕</text><text x={0} y={-38} textAnchor="middle" fontSize={12} fill="#97264f">TROCA</text><text x={0} y={-22} textAnchor="middle" fontSize={12} fill="#97264f">SIMULADA</text></>}
+            {node.id === 'A0-ENTRADA' && <><circle r={12} fill="#fff" stroke="#536d85" strokeWidth={4} /><text x={-20} y={-8} textAnchor="end" className={styles.pneLabel}>ENTRADA PROVISÓRIA</text></>}
             {selected && <circle r={20} className={node.id === originNodeId ? styles.originPoint : styles.destinationPoint} />}
           </g>
         })}
@@ -184,10 +193,11 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
       <span><i className={styles.patioSwatch} />Pátio</span><span><i className={styles.routeSwatch} />Percurso</span>
     </div>
     <p className={styles.message} role="status">{routeMessage}</p>
+    {floor === 0 && <p className={styles.notice}>Planta provisória do térreo — distribuição sujeita a validação.</p>}
     <p className={styles.notice}>Rota demonstrativa, não homologada. Sanitários: chegada ao acesso coletivo pelo corredor esquerdo; entrada interna e portas separadas pendentes de vistoria.</p>
     {(originNodeId === 'A1-FOTO' || destinationNodeId === 'A1-FOTO') && <p className={styles.notice}>As fotos são referências gerais do andar e não têm posição exata marcada na planta.</p>}
     <details className={styles.details}><summary>Sobre esta planta aproximada</summary>
-      <p>{notice}</p><p>Numeração: 09 no corredor inferior, seguindo à esquerda, pela lateral esquerda e parte superior, até 16 na lateral direita. Distribuição das salas intermediárias e portas estimada para o MVP. Os custos das rotas não representam metros.</p>
+      <p>{notice}</p><p>Numeração em anel, iniciando no corredor inferior direito. A transição vertical marcada é simulada e não representa uma escada real. Distribuição das salas intermediárias e portas estimada para o MVP. Os custos das rotas não representam metros.</p>
     </details>
     {view.missingNodeIds.length > 0 && <p className={styles.notice} role="alert">Faltam coordenadas de visualização: {view.missingNodeIds.join(', ')}.</p>}
   </div>

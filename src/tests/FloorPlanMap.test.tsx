@@ -37,7 +37,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     const expected = findRoute(campusGraph, 'A1-S09', 'A1-S16')
     expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe(expected.path.join(' '))
-    expect(within(screen.getByRole('list', { name: 'Pontos da rota em ordem' })).getAllByRole('listitem').map(item => item.textContent)).toEqual(expected.path)
+    expect(within(screen.getByRole('list', { name: 'Pontos da rota em ordem' })).getAllByRole('listitem').map(item => item.textContent)).toEqual(expected.path.map(id => campusLocations.find(place => place.nodeId === id)?.name ?? id))
     expect(container.querySelector('[data-route]')?.getAttribute('points')).toBe('900,800 900,745 1005,745 1005,650 1060,650')
   })
 
@@ -62,7 +62,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
     expect(container.querySelector('[data-route]')).toBeNull()
     expect(screen.getByText('Nenhuma rota calculada.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
-    expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe('A1-S09 A1-C1 A1-C4 A1-S14')
+    expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe('A1-S09 A1-C1 A1-TRANSFER A1-C4 A1-S14')
   })
 
   it('inverte os campos e os marcadores e só redesenha após calcular', () => {
@@ -116,7 +116,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
     expect(container.querySelector('[data-route]')).toBeNull()
   })
 
-  it('oferece acesso demonstrativo aos sanitários sem inventar ligação vertical', () => {
+  it('oferece sanitários e transição simulada entre pavimentos', () => {
     const { container } = render(<App initialView="first" />)
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a1-sala-09' } })
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a1-sanitarios' } })
@@ -125,7 +125,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a0-referencia' } })
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a1-sala-09' } })
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
-    expect(screen.getByText('Não há caminho disponível entre a origem e o destino.')).toBeTruthy()
+    expect(screen.getByText(/Conexão vertical simulada e provisória/)).toBeTruthy()
     expect(container.querySelector('[data-route]')).toBeNull()
   })
 
@@ -134,7 +134,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     fireEvent.change(screen.getByLabelText('Andar do mapa'), { target: { value: '0' } })
-    expect(container.querySelector('[data-floor-plan]')).toBeNull()
+    expect(container.querySelector('[data-floor-plan="bloco-a-terreo"]')).toBeTruthy()
     expect(container.querySelector('[data-route]')).toBeNull()
     expect(screen.getByRole('list', { name: 'Pontos da rota em ordem' })).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Andar do mapa'), { target: { value: '1' } })

@@ -100,3 +100,9 @@ select[aria-invalid="true"] { border-color: #9c233b; }
   .planner { padding: 20px 16px; }
   input, select { font-size: .875rem; }
 }
+
+@media (max-width: 799px) {
+  .workspace > .map-panel { order: -1; }
+  .campus-view-controls { grid-template-columns: minmax(0, 1fr); }
+}
+.route-stages button[aria-pressed="true"] { background: #f7eaf0; border-color: var(--accent); }
