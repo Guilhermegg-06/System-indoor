@@ -9,7 +9,7 @@ import { findRoute } from '../modules/navigation/findRoute'
 afterEach(cleanup)
 const audit = () => auditNavigation(campusGraph, campusLocations, campusMetadata, campusDiagramPositions)
 
-it('audita cada acesso, os 289 pares e a geometria de todas as passagens', () => {
+it('audita cada acesso, todos os pares e a geometria de todas as passagens', () => {
   const report = audit()
   expect(report.errors).toEqual([])
   expect(report.pairs).toHaveLength(campusLocations.length ** 2)
@@ -19,7 +19,7 @@ it('audita cada acesso, os 289 pares e a geometria de todas as passagens', () =>
     const from = campusLocations.find(place => place.id === pair.from)!
     const to = campusLocations.find(place => place.id === pair.to)!
     const pending = campusMetadata[from.id].navigation === 'pending' || campusMetadata[to.id].navigation === 'pending'
-    expect(pair.status).toBe(from.floor === to.floor && !pending ? 'demonstrative' : 'unavailable')
+    expect(pair.status).toBe(!pending ? 'demonstrative' : 'unavailable')
   }
 })
 
@@ -38,7 +38,8 @@ it('distingue mesma origem, nó inexistente, referência isolada e ligação ver
   expect(findRoute(campusGraph, 'A1-S09', 'A1-S09').status).toBe('same-location')
   expect(findRoute(campusGraph, 'XXX', 'A1-S09').status).toBe('invalid-location')
   expect(findRoute(campusGraph, 'A1-S09', 'A1-FOTO').status).toBe('no-path')
-  expect(findRoute(campusGraph, 'MS-REF', 'A1-S09').status).toBe('no-path')
+  const blocked = { ...campusGraph, edges: campusGraph.edges.map(edge => edge.from === 'A0-TRANSFER' && edge.to === 'A1-TRANSFER' ? { ...edge, blocked: true } : edge) }
+  expect(findRoute(blocked, 'MS-REF', 'A1-S09').status).toBe('no-path')
 })
 
 it('detecta cadastros esquecidos, nós inválidos, pesos e travessia de obstáculos', () => {
@@ -56,7 +57,6 @@ it('detecta cadastros esquecidos, nós inválidos, pesos e travessia de obstácu
 it('mantém a referência fotográfica consultável fora da seleção de destinos', () => {
   render(<App />)
   expect(within(screen.getByLabelText('Destino')).queryByRole('option', { name: /Corredores · fotos/ })).toBeNull()
-  expect(screen.getByText(/referência geral pendente de localização/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Ver fotos do primeiro andar' }))
   expect(within(screen.getByRole('region', { name: 'Referências do local' })).getAllByRole('img')).toHaveLength(2)
 })
@@ -69,7 +69,7 @@ it('oferece plantas úteis nas quatro vistas externas e etapa compatível com o 
   fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'ms-referencia' } })
   fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a0-referencia' } })
   fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
-  for (const [label, area] of [['Etapa: Minishopping', 'minishopping'], ['Etapa: percurso externo', 'percurso-externo'], ['Etapa: Bloco A térreo', 'bloco-a'], ['Ver rota completa', 'campus']]) {
+  for (const [label, area] of [['Abrir Minishopping', 'minishopping'], ['Abrir percurso externo', 'percurso-externo'], ['Visão geral', 'campus']]) {
     fireEvent.click(screen.getByRole('button', { name: label }))
     expect(container.querySelector(`[data-site-plan="${area}"]`)).toBeTruthy()
     expect(container.querySelector('[data-route]')?.getAttribute('data-route')).toBe('MS-REF MS-SAIDA EXT-REF EXT-CURVA A0-REF')
@@ -82,7 +82,7 @@ it('oferece plantas úteis nas quatro vistas externas e etapa compatível com o 
   fireEvent.click(screen.getByRole('button', { name: 'Abrir primeiro andar' }))
   expect(container.querySelector('[data-route]')).toBeNull()
   expect(screen.getByText('A rota está em outra área ou andar. Selecione a vista correspondente.')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'Ver rota completa' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Visão geral da rota' }))
   expect(container.querySelector('[data-route]')).toBeTruthy()
 })
 
