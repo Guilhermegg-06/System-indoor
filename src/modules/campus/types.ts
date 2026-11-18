@@ -1,5 +1,5 @@
 import type { Graph, Point3D } from '../navigation/types'
-import type { Positions2D } from '../visualization/types'
+import type { FloorPlan, Positions2D } from '../visualization/types'
 
 export type Confidence = 'confirmed' | 'approximate' | 'pending'
 export type AreaId = 'minishopping' | 'percurso-externo' | 'bloco-a'
@@ -49,4 +49,5 @@ export interface CampusView {
   readonly positions: Positions2D
   readonly regions: readonly DiagramRegion[]
   readonly notice: string
+  readonly floorPlan?: FloorPlan
 }

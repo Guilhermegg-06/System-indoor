@@ -5,7 +5,7 @@ Navegação institucional pelo celular para ajudar alunos e visitantes a encontr
 **Fotografias reais do primeiro andar estão disponíveis. O mapa e suas conexões são demonstrativos, sem escala validada. O ambiente real ainda não foi modelado em 3D.**
 
 ## Escopo
-Minishopping + Bloco A; Bloco B fora do MVP. Pesquisa, origem/destino manual, cálculo e mapa esquemático funcionam sem GLB. A visão inicial mostra referências do campus, separando térreo e primeiro andar; não há ligação entre pisos cadastrada. O catálogo fictício original continua disponível em **Dados da navegação**. Modelo real, caminhada e colisões dependem das próximas entregas. Sem autenticação, GPS indoor, Supabase ou IA na aplicação.
+Minishopping + Bloco A; Bloco B fora do MVP. Pesquisa, origem/destino manual, cálculo e planta 2D funcionam sem GLB. A visão inicial abre a planta interativa aproximada do primeiro andar do Bloco A, com salas 09–16, paredes, portas, sanitários, pátio e circulação. Térreo e primeiro andar continuam separados, sem ligação entre pisos cadastrada. O catálogo fictício original continua disponível em **Dados da navegação**. Modelo real, caminhada e colisões dependem das próximas entregas. Sem autenticação, GPS indoor, Supabase ou IA na aplicação.
 
 ## Stack e arquitetura
 React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js e React Three Fiber são carregados somente ao abrir um modelo configurado.
@@ -14,9 +14,10 @@ React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js e React Three
 - `src/modules/locations/location.types.ts`: contratos `Location`, `LocationType` e `Position3D`, independentes da interface.
 - `src/data/locations.mock.ts`: catálogo original de seis locais fictícios da #28.
 - `src/data/campus.ts`: referências do campus, grafo demonstrativo, fotos, medições e contratos dos futuros modelos por setor/andar.
+- `src/data/blocoA.floorPlan.ts`: geometria aproximada das salas, portas, circulação e acessos; unidades do desenho, sem escala física.
 - `src/modules/campus`: seleção de área/andar, metadados de confiança e fotografias carregadas sob demanda.
 - `src/modules/search`: pesquisa por nome/código no catálogo recebido; `src/modules/scene`: carregador GLB/glTF e câmera, independentes do cálculo de rotas.
-- `src/modules/visualization`: adaptação de coordenadas, mapa SVG e alternância de visualização.
+- `src/modules/visualization`: planta SVG interativa, adaptação de coordenadas, esquema de outras áreas e alternância de visualização. `floorPlanGeometry` apenas desenha segmentos já validados pelo adaptador; não calcula rotas.
 - `src/config/visualization.ts`: desenho esquemático, caminho do modelo, posições espaciais e medições preliminares; sem mudar o motor.
 - `src/components`: componentes compartilhados quando necessários.
 - `src/tests`: casos funcionais rastreáveis.
@@ -27,15 +28,16 @@ As arestas são bidirecionais, pesos finitos não negativos, bloqueios ignorados
 
 `Location` exige `id`, `name`, `type`, `block`, `floor` e `nodeId`; `code` e `position` são opcionais. Os dados são somente leitura no contrato TypeScript. `id` identifica a seleção no catálogo; `nodeId` é enviado ao motor de rotas.
 
-O modo **Demonstração original** preserva os seis registros da PR #35, associados a E0, C1, C2, S101, S102 e L01. Nomes, andares e setores são exemplos fictícios. O modo **Campus** contém nove referências de áreas/circulação, sem afirmar salas ou portas reais. Coordenadas métricas permanecem pendentes; as posições SVG são apenas unidades do desenho.
+O modo **Demonstração original** preserva os seis registros da PR #35, associados a E0, C1, C2, S101, S102 e L01. Nomes, andares e setores são exemplos fictícios. O modo **Campus** contém 17 referências: as nove anteriores e oito salas de demonstração (09–16). O usuário orientou o início da numeração na parte inferior, seguindo à esquerda até a lateral direita. A distribuição intermediária, as dimensões e as portas são estimadas; não equivalem a um cadastro físico homologado. Coordenadas métricas permanecem pendentes; as posições SVG são apenas unidades do desenho.
 
-O layout integra `SearchField`, seleção manual, inversão e `RouteResultView`. Pesquise por nome ou código e escolha um resultado para preencher o destino. Alterar os locais limpa o resultado anterior; calcule novamente. O mapa permite ampliar, rolar e ajustar a visualização.
+O layout integra `SearchField`, seleção manual, inversão e `RouteResultView`. Pesquise por nome ou código e escolha um resultado para preencher o destino. Na planta, use **Definir origem** ou **Definir destino** e toque em uma sala; Enter e Espaço também funcionam. Os cliques preenchem os mesmos campos existentes. Alterar os locais limpa o resultado anterior; calcule novamente. O mapa permite ampliar até 300%, rolar, arrastar com o mouse quando ampliado e ajustar a visualização. Rotas seguem os corredores até a porta, sem cruzar salas, sanitários ou pátio.
 
 Para demonstrar o campus:
-1. Origem **Minishopping**; pesquise **A0** e selecione **Bloco A · térreo**. Calcule: **MS-REF → EXT-REF → A0-REF**, um percurso explicitamente demonstrativo.
-2. Selecione **Circulação A1 · 1** e **Circulação A1 · 3**. O mapa muda para o primeiro andar; calcule a rota e consulte as fotos de referência. Elas confirmam o pavimento, não a posição exata de cada ponto.
-3. Em **Área do mapa → Bloco A**, alterne o andar. O térreo informa a ausência da planta. Minishopping → primeiro andar retorna **sem caminho**, pois nenhuma escada/conexão foi confirmada.
-4. Para o exemplo anterior, escolha **Demonstração original**: Entrada → Sala 101 exibe **E0 → C1 → C2 → S101**.
+1. Na planta inicial, clique em **Definir origem**, **Sala 09** e **Sala 16**; o modo muda automaticamente para destino após escolher a origem. Calcule: **A1-S09 → A1-C1 → A1-S16**. Amplie e ajuste a planta. Pesquise **sala 14**, selecione o resultado e calcule novamente. Registro: [VALIDACAO_PLANTA_INTERATIVA.md](docs/VALIDACAO_PLANTA_INTERATIVA.md).
+2. Origem **Minishopping**; pesquise **A0** e selecione **Bloco A · térreo**. Calcule: **MS-REF → EXT-REF → A0-REF**, um percurso explicitamente demonstrativo.
+3. Selecione **Circulação A1 · 1** e **Circulação A1 · 3**. O mapa muda para o primeiro andar; calcule a rota e consulte as fotos de referência. Elas confirmam o pavimento, não a posição exata de cada ponto.
+4. Em **Área do mapa → Bloco A**, alterne o andar. O térreo informa a ausência da planta. Minishopping → primeiro andar retorna **sem caminho**, pois nenhuma escada/conexão foi confirmada.
+5. Para o exemplo anterior, escolha **Demonstração original**: Entrada → Sala 101 exibe **E0 → C1 → C2 → S101**.
 
 A fase 1 atende às issues #21, #29 e #30, sobre a base da PR #35. Evidências e limites: [VALIDACAO_MVP_FASE1.md](docs/VALIDACAO_MVP_FASE1.md). A validação anterior está em [VALIDACAO_19_28.md](docs/VALIDACAO_19_28.md).
 
@@ -60,7 +62,7 @@ Crie uma branch de feature a partir da main. Faça commits pequenos, abra PR, ag
 O primeiro commit vazio apenas inicializa o repositório; todo o desenvolvimento entra por PR.
 
 ## Status
-Pesquisa, seleção, cálculo, mapa por área/andar e duas fotos reais integrados. Fontes, medidas e contratos: [REFERENCIAS_CAMPUS.md](docs/REFERENCIAS_CAMPUS.md). Evidências: [VALIDACAO_CAMPUS.md](docs/VALIDACAO_CAMPUS.md). Para preparar o carregamento do modelo, veja [o módulo de cena](src/modules/scene/README.md). A homologação do campus, do 3D e do desempenho em celulares físicos permanece pendente.
+Pesquisa, seleção, cálculo, planta 2D com salas clicáveis, mapa por área/andar e duas fotos reais integrados. Fontes, medidas e contratos: [REFERENCIAS_CAMPUS.md](docs/REFERENCIAS_CAMPUS.md). Evidências: [VALIDACAO_CAMPUS.md](docs/VALIDACAO_CAMPUS.md) e [VALIDACAO_PLANTA_INTERATIVA.md](docs/VALIDACAO_PLANTA_INTERATIVA.md). Para preparar o carregamento do modelo, veja [o módulo de cena](src/modules/scene/README.md). A homologação do campus, do 3D e do desempenho em celulares físicos permanece pendente.
 Project: https://github.com/users/Guilhermegg-06/projects/4
 Comece pelo [guia da equipe](docs/GUIA_DA_EQUIPE.md), que explica o código, as tarefas, o Kanban, as labels, os testes e o fluxo de revisão.
 Veja também [TDD](docs/TDD.md) e [pendências](docs/PENDENCIAS.md).
