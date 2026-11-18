@@ -4,7 +4,9 @@ import type { PlaceReference } from './types'
 import type { PlanRect, Point2D, Positions2D } from '../visualization/types'
 import { findRoute } from '../navigation/findRoute'
 import { floorPlanEdgePoints } from '../visualization/floorPlanGeometry'
-import { blocoAFloorPlan } from '../../data/blocoA.floorPlan'
+import { blocoAFloorPlans } from '../../data/blocoA.floorPlan'
+import { campusTransitions } from '../../data/campus'
+import { campusFrame } from './selectors'
 import { siteWalkways, siteBuildings } from '../../data/campusSite'
 
 export type RouteAvailability = 'usable' | 'demonstrative' | 'unavailable'
@@ -22,19 +24,24 @@ export function auditNavigation(graph: Graph, locations: readonly Location[], me
     if (edge.blocked) continue
     const from = positions[edge.from], to = positions[edge.to]
     if (!from || !to || ![from.x, from.y, to.x, to.y].every(Number.isFinite)) { errors.push(`missing-geometry:${edge.from}:${edge.to}`); continue }
-    const first = edge.from.startsWith('A1-')
-    if (first !== edge.to.startsWith('A1-')) { errors.push(`unknown-floor-link:${edge.from}:${edge.to}`); continue }
-    const points = first ? floorPlanEdgePoints({ id: edge.from, name: '', point: from }, { id: edge.to, name: '', point: to }, blocoAFloorPlan) : [from, to]
+    const frame = campusFrame(edge.from)
+    if (frame !== campusFrame(edge.to)) {
+      if (!campusTransitions.some(link => (link.from === edge.from && link.to === edge.to) || (link.from === edge.to && link.to === edge.from))) errors.push(`unknown-floor-link:${edge.from}:${edge.to}`)
+      continue
+    }
+    const first = frame !== 'site'
+    const plan = blocoAFloorPlans[frame === 'a1' ? 1 : 0]
+    const points = first ? floorPlanEdgePoints({ id: edge.from, name: '', point: from }, { id: edge.to, name: '', point: to }, plan) : [from, to]
     for (let index = 1; index < points.length; index++) {
       const a = points[index - 1], b = points[index]
       if (a.x !== b.x && a.y !== b.y) errors.push(`non-orthogonal:${edge.from}:${edge.to}`)
       const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y)))
       for (let step = 0; step <= steps; step++) {
         const point = { x: a.x + (b.x - a.x) * step / steps, y: a.y + (b.y - a.y) * step / steps }
-        const obstacles = first ? [blocoAFloorPlan.courtyard, blocoAFloorPlan.restrooms, ...blocoAFloorPlan.rooms] : siteBuildings
+        const obstacles = first ? [plan.courtyard, plan.restrooms, ...plan.rooms] : siteBuildings
         if (obstacles.some(rect => inside(point, rect))) errors.push(`obstacle:${edge.from}:${edge.to}`)
         if (!first && !siteWalkways.some(rect => contains(point, rect))) errors.push(`outside-walkway:${edge.from}:${edge.to}`)
-        if (first && !contains(point, blocoAFloorPlan.circulation)) errors.push(`outside-corridor:${edge.from}:${edge.to}`)
+        if (first && !contains(point, plan.circulation)) errors.push(`outside-corridor:${edge.from}:${edge.to}`)
       }
     }
   }
@@ -54,7 +61,7 @@ export function auditNavigation(graph: Graph, locations: readonly Location[], me
       (a === result.path[index] && b === id) || (b === result.path[index] && a === id)))
     const status: RouteAvailability = pending || !['ok', 'same-location'].includes(result.status) ? 'unavailable'
       : verified && [from, to].every(place => metadata[place.id]?.navigation === 'confirmed') ? 'usable' : 'demonstrative'
-    if (!pending && from.floor === to.floor && status === 'unavailable') errors.push(`disconnected:${from.id}:${to.id}`)
+    if (!pending && status === 'unavailable') errors.push(`disconnected:${from.id}:${to.id}`)
     return { from: from.id, to: to.id, status, result }
   }))
   return { errors: [...new Set(errors)], isolatedNodes: graph.nodes.filter(node => !graph.edges.some(edge => !edge.blocked && (edge.from === node.id || edge.to === node.id))).map(node => node.id), catalog, pairs }

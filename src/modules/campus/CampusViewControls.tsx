@@ -11,7 +11,7 @@ export function CampusViewControls({ area, floor, onAreaChange, onFloorChange }:
     </div>
     {area === 'bloco-a' && <div><label htmlFor="map-floor">Andar do mapa</label>
       <select id="map-floor" value={floor} onChange={event => onFloorChange(Number(event.target.value))}>
-        <option value={0}>Térreo · planta pendente</option><option value={1}>Primeiro andar · planta 2D</option>
+        <option value={0}>Térreo · Salas 01–08</option><option value={1}>Primeiro andar · Salas 09–16</option>
       </select>
     </div>}
   </div>
