@@ -1,3 +1,4 @@
+import type { CampusArea } from './walkSurface'
 import type { Graph, RouteResult } from '../navigation/types'
 import type { Positions3D } from '../visualization/types'
 
@@ -5,6 +6,8 @@ import type { Positions3D } from '../visualization/types'
 export interface SceneContainerProps {
   graph: Graph | null
   route?: RouteResult | null
+  area?: CampusArea
+  walkUrl?: string
   modelUrl?: string | null
   spatialPositions?: Positions3D
 }

@@ -42,6 +42,8 @@ export function VisualizationPanel({ graph, locations, config, route, originNode
             originNodeId={originNodeId} destinationNodeId={destinationNodeId} notice={config.mapNotice} onLocationSelect={onLocationSelect} onOpenArea={onOpenArea} />
         : <SchematicMap graph={graph} locations={locations} positions={config.schematicPositions} route={route}
           originNodeId={originNodeId} destinationNodeId={destinationNodeId} notice={config.mapNotice} title={config.mapTitle} regions={config.regions} />
-      : <SceneContainer graph={graph} route={route} modelUrl={config.modelUrl} spatialPositions={config.spatialPositions} />}
+      : <SceneContainer graph={graph} route={route} modelUrl={config.modelUrl} walkUrl={config.walkUrl}
+          area={config.floorPlan ? (config.floorPlan.floor === 1 ? 'primeiro' : 'terreo') : config.siteArea === 'bloco-a' ? 'terreo' : config.siteArea}
+          spatialPositions={config.spatialPositions} />}
   </section>
 }

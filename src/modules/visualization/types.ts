@@ -33,6 +33,7 @@ export interface MapView {
   missingNodeIds: string[]
 }
 export interface VisualizationConfig {
+  readonly walkUrl?: string
   readonly modelUrl: string | null
   readonly schematicPositions: Positions2D
   readonly spatialPositions: Positions3D
