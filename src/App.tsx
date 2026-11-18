@@ -11,21 +11,22 @@ import { VisualizationPanel } from './modules/visualization/VisualizationPanel'
 import { visualizationConfig } from './config/visualization'
 import type { VisualizationConfig } from './modules/visualization/types'
 import { campusGraph, campusLocations, campusMetadata, campusModels } from './data/campus'
-import { getCampusView, photosForLocation } from './modules/campus/selectors'
+import { getCampusView, photosForLocation, routeStages, campusFrame } from './modules/campus/selectors'
 import { CampusViewControls } from './modules/campus/CampusViewControls'
 import { LocationReference } from './modules/campus/LocationReference'
+import { projectRouteToView } from './modules/visualization/adapters'
 import type { MapArea } from './modules/campus/types'
 
 interface AppProps { graph?: Graph; visualization?: VisualizationConfig; initialDataset?: 'campus' | 'demo'; initialView?: 'campus' | 'first' }
 
 export default function App({ graph, visualization = visualizationConfig, initialDataset = 'campus', initialView = 'campus' }: AppProps) {
-  const [dataset, setDataset] = useState(initialDataset)
+  const dataset = initialDataset
   return <NavigationApp key={dataset} graph={graph ?? (dataset === 'campus' ? campusGraph : G1)} visualization={visualization}
-    isCampus={dataset === 'campus'} initialView={initialView} onDatasetChange={setDataset} />
+    isCampus={dataset === 'campus'} initialView={initialView} />
 }
 
-function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetChange }: {
-  graph: Graph; visualization: VisualizationConfig; isCampus: boolean; initialView: 'campus' | 'first'; onDatasetChange: (dataset: 'campus' | 'demo') => void
+function NavigationApp({ graph, visualization, isCampus, initialView }: {
+  graph: Graph; visualization: VisualizationConfig; isCampus: boolean; initialView: 'campus' | 'first'
 }) {
   const locations = isCampus ? campusLocations : mockLocations
   const navigableLocations = isCampus ? locations.filter(place => campusMetadata[place.id].navigation !== 'pending') : locations
@@ -43,9 +44,10 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
   const model = campusModels.find(item => item.areaId === area && item.floorId === (area === 'minishopping' ? 'ms-0' : floor === 1 ? 'a-1' : 'a-0'))
   const mapConfig: VisualizationConfig = isCampus ? { ...visualization, modelUrl: model?.url ?? null,
     schematicPositions: campusView.positions, spatialPositions: {}, mapNotice: campusView.notice,
-    mapTitle: `Mapa esquemático · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`,
+    mapTitle: `Planta 2D · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`,
     regions: campusView.regions, floorPlan: campusView.floorPlan, siteArea: campusView.siteArea } : visualization
-  const mapGraph = isCampus ? campusView.graph : graph
+  const viewIds = new Set(campusView.graph.nodes.map(node => node.id))
+  const mapGraph = isCampus ? { nodes: graph.nodes.filter(node => viewIds.has(node.id)), edges: graph.edges.filter(edge => viewIds.has(edge.from) && viewIds.has(edge.to)) } : graph
   const routePhotoLocation = result?.status === 'ok' && isCampus
     ? locations.find(place => result.path.includes(place.nodeId) && photosForLocation(place.id).length > 0) : undefined
 
@@ -62,7 +64,7 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
     setInspectedLocationId(id)
     if (isCampus) {
       const location = locations.find(place => place.id === id)
-      if (location) { setArea(location.floor === 1 ? 'bloco-a' : 'campus'); setFloor(location.floor) }
+      if (location) { setArea(location.nodeId === 'A0-REF' ? 'campus' : campusMetadata[location.id].areaId); setFloor(location.floor) }
     }
   }
 
@@ -88,8 +90,8 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
       : { status: 'invalid-location' as const, path: [] as [] }
     setResult(next)
     if (isCampus && next.status === 'ok') {
-      setArea(origin?.floor === 1 ? 'bloco-a' : 'campus')
-      setFloor(origin?.floor ?? 0)
+      const step = routeStages(next.path)[0]
+      if (step) { setArea(step.area); setFloor(step.floor) }
     }
   }
 
@@ -105,16 +107,11 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
       </header>
 
       <main id="main-content" tabIndex={-1}>
-        <div className="intro">
+        <div className="intro" data-release="mvp-2d-final">
           <p className="eyebrow">Minishopping + Bloco A · Escopo inicial</p>
           <p className="intro-title">Seu caminho pelo campus.</p>
-          <p className="preview-label">{isCampus ? 'Referências reais · Mapa e rotas provisórios' : 'Navegação experimental · Dados fictícios'}</p>
-          <div className="dataset-switch"><label htmlFor="navigation-data">Dados da navegação</label>
-            <select id="navigation-data" value={isCampus ? 'campus' : 'demo'} onChange={event => onDatasetChange(event.target.value as 'campus' | 'demo')}>
-              <option value="campus">Campus · referências e esquema provisório</option>
-              <option value="demo">Demonstração original · 6 locais fictícios</option>
-            </select>
-          </div>
+          <p className="preview-label">{isCampus ? 'Campus UNIMA Afya · plantas e percursos provisórios' : 'Navegação experimental · Dados fictícios'}</p>
+
         </div>
 
         <div className="workspace">
@@ -141,7 +138,7 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
                         setQuery('')
                         document.getElementById('destination')?.focus()
                       }}>
-                        <span>{location.name}{location.code ? ` · ${location.code}` : ''}</span>
+                        <span>{location.name}{!isCampus && location.code ? ` · ${location.code}` : ''}</span>
                         <small>{location.block}</small>
                       </button>
                     </li>
@@ -165,46 +162,46 @@ function NavigationApp({ graph, visualization, isCampus, initialView, onDatasetC
               </button>
             </form>
             <p className="manual-origin">A origem é escolhida manualmente.</p>
-            {isCampus && <aside className="mapping-note"><p>Mapeamento: acessos e rotas demonstrativos, ainda não homologados. Sem conexão entre térreo e primeiro andar.</p>
-              <p>Corredores · fotos: referência geral pendente de localização, não é destino navegável.</p>
+            {isCampus && <aside className="mapping-note"><p>Plantas e trajetos demonstrativos, ainda não homologados. A troca de pavimento é simulada para apresentação acadêmica.</p>
               <button type="button" onClick={() => setInspectedLocationId('a1-foto')}>Ver fotos do primeiro andar</button></aside>}
 
             <div className="catalog-note">
               <span className="catalog-count">{locations.length.toString().padStart(2, '0')}</span>
-              <p>{isCampus ? 'referências de locais' : 'locais de exemplo'}<span>{isCampus ? 'Salas 09–16 · posições aproximadas' : 'Para desenvolvimento da interface'}</span></p>
+              <p>{isCampus ? 'locais cadastrados' : 'locais de exemplo'}<span>{isCampus ? 'Salas 01–16 · dois pavimentos' : 'Para desenvolvimento da interface'}</span></p>
             </div>
           </section>
 
-          <VisualizationPanel key={isCampus ? campusView.id : 'demo'} graph={mapGraph} locations={locations} config={mapConfig} route={result}
+          <VisualizationPanel key={isCampus ? campusView.id : 'demo'} graph={mapGraph} locations={locations} config={mapConfig} route={isCampus ? projectRouteToView(graph, mapGraph, result) : result}
             onOpenArea={(nextArea, nextFloor) => { setArea(nextArea); setFloor(nextFloor) }}
             onLocationSelect={isCampus ? changeLocation : undefined}
             originNodeId={locations.find(location => location.id === originId)?.nodeId}
             destinationNodeId={locations.find(location => location.id === destinationId)?.nodeId}
             contextControls={isCampus && <><CampusViewControls area={area} floor={floor} onAreaChange={next => { setArea(next); setFloor(0) }} onFloorChange={setFloor} />
               {result?.status === 'ok' && <nav className="route-stages" aria-label="Etapas da rota">
-                <p>Rota demonstrativa · {result.path.some(id => id.startsWith('A1-')) ? 'Primeiro andar' : 'Passeio externo · acessos do térreo'}. Resultado completo preservado abaixo.</p>
-                {(result.path.some(id => id.startsWith('A1-')) ? [{ area: 'bloco-a' as MapArea, floor: 1, name: 'Ver rota no primeiro andar' }]
-                  : [{ area: 'campus' as MapArea, floor: 0, name: 'Ver rota completa' },
-                    ...[{ id: 'MS-REF', area: 'minishopping' as MapArea, name: 'Etapa: Minishopping' }, { id: 'EXT-REF', area: 'percurso-externo' as MapArea, name: 'Etapa: percurso externo' }, { id: 'A0-REF', area: 'bloco-a' as MapArea, name: 'Etapa: Bloco A térreo' }]
-                      .filter(step => result.path.includes(step.id)).map(step => ({ ...step, floor: 0 }))]).map(step => <button key={step.name} type="button" onClick={() => { setArea(step.area); setFloor(step.floor) }}>{step.name}</button>)}
+                <p>Rota demonstrativa · acompanhe as etapas em ordem. Vista atual: {area === 'bloco-a' ? floor === 0 ? 'Térreo' : 'Primeiro andar' : area === 'campus' ? 'Campus' : area === 'minishopping' ? 'Minishopping' : 'Percurso externo'}.</p>
+                <button type="button" onClick={() => { setArea('campus'); setFloor(0) }}>Visão geral da rota</button>
+                {routeStages(result.path).map((step, index) => <button key={`${index}-${step.name}`} type="button"
+                  aria-pressed={area === step.area && floor === step.floor}
+                  onClick={() => { setArea(step.area); setFloor(step.floor) }}>{index + 1}. {step.name}</button>)}
+                {result.path.some(id => campusFrame(id) === 'a0') && result.path.some(id => campusFrame(id) === 'a1') &&
+                  <p>Conexão vertical simulada e provisória. Não representa uma escada real nem uma rota acessível homologada.</p>}
               </nav>}
             </>} />
 
           <div className="route-summary" ref={resultRef} tabIndex={-1}>
-            <RouteResultView result={result} />
-            {isCampus && result?.status === 'no-path' && <p className="mapping-note">{locations.find(place => place.id === originId)?.floor !== locations.find(place => place.id === destinationId)?.floor
-              ? 'Não há escada, elevador ou ligação entre pavimentos cadastrada. Este trajeto está indisponível por falta de levantamento.'
-              : 'Não há ligação utilizável cadastrada para estes acessos. Consulte a pendência de mapeamento.'}</p>}
+            <RouteResultView result={result} campus={isCampus} pointNames={isCampus ? Object.fromEntries(graph.nodes.map(node => [node.id,
+              locations.find(place => place.nodeId === node.id)?.name ?? (node.id === 'MS-SAIDA' ? 'Saída do Minishopping' : node.id === 'EXT-CURVA' ? 'Curva no passeio externo' : node.id === 'A0-ENTRADA' ? 'Entrada demonstrativa do térreo' : 'Acesso aos sanitários')])) : undefined} />
+            {isCampus && result?.status === 'no-path' && <p className="mapping-note">Não há passagem disponível na rede demonstrativa para esta seleção. Uma conexão pode estar bloqueada ou pendente.</p>}
             {isCampus && <>
               {routePhotoLocation && <button type="button" className="route-photo-button" onClick={() => setInspectedLocationId(routePhotoLocation.id)}>Ver fotos de referência do percurso</button>}
-              <LocationReference location={locations.find(place => place.id === inspectedLocationId)} />
-              {inspectedLocationId && <p className="reference-caption">{campusMetadata[inspectedLocationId]?.source} Coordenadas métricas: pendentes.</p>}
+              {inspectedLocationId === 'a1-foto' && <LocationReference location={locations.find(place => place.id === inspectedLocationId)} />}
+              {inspectedLocationId === 'a1-foto' && <p className="reference-caption">{campusMetadata[inspectedLocationId]?.source} Coordenadas métricas: pendentes.</p>}
             </>}
           </div>
         </div>
 
         <footer className="project-note">
-          {isCampus ? 'Projeto acadêmico · Fotos reais do primeiro andar; posições e passagens ainda não homologadas. Não há conexão entre pisos cadastrada. Bloco B fora do escopo.'
+          {isCampus ? 'Projeto acadêmico · Plantas e acessos aproximados. Térreo provisório e transição vertical simulada. Sem homologação física ou de acessibilidade.'
             : 'Projeto acadêmico · Os locais de exemplo não representam um levantamento real da instituição.'}
         </footer>
       </main>
