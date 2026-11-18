@@ -4,6 +4,7 @@ import type { CampusMeasurement, CampusModel, CampusPhoto, PlaceReference } from
 import type { Positions2D } from '../modules/visualization/types'
 import { preliminaryMeasurements } from '../config/visualization'
 import { blocoAFloorPlan, blocoAPlanPositions } from './blocoA.floorPlan'
+import { sitePositions } from './campusSite'
 
 // Referências de áreas, não cadastro de portas ou salas confirmadas.
 export const campusLocations: readonly Location[] = [
@@ -22,6 +23,10 @@ export const campusMetadata: Readonly<Record<string, PlaceReference>> = Object.f
   areaId: location.block === 'Minishopping' ? 'minishopping' : location.block === 'Área externa' ? 'percurso-externo' : 'bloco-a',
   floorId: location.floor === 1 ? 'a-1' : location.block === 'Minishopping' ? 'ms-0' : location.block === 'Área externa' ? 'externo-0' : 'a-0',
   confidence: location.id === 'a1-foto' ? 'confirmed' : 'approximate',
+  navigation: location.id === 'a1-foto' ? 'pending' : 'demonstrative',
+  accessNote: location.id === 'a1-foto' ? 'Referência fotográfica sem ponto de captura localizado. Não é destino navegável.'
+    : location.id === 'a1-sanitarios' ? 'Chegada ao acesso coletivo pelo corredor esquerdo, sem entrar nos sanitários. Posição aproximada do esquema, não homologada.'
+    : location.floor === 0 ? 'Ponto no passeio externo; interiores e conexão vertical não levantados.' : 'Acesso demonstrativo no primeiro andar.',
   positionMeters: null,
   photoIds: location.floor === 1 && location.type === 'corridor' ? photoIds : [],
   source: location.id === 'a1-foto' ? 'Fotos do grupo; primeiro andar confirmado pelo usuário.'
@@ -31,19 +36,21 @@ export const campusMetadata: Readonly<Record<string, PlaceReference>> = Object.f
 
 /** Todas as ligações são demonstrativas/topológicas. Nenhuma equivale a passagem física homologada. */
 export const campusConnections = [
-  ['MS-REF', 'EXT-REF'], ['EXT-REF', 'A0-REF'],
-  ['A1-C1', 'A1-C2'], ['A1-C2', 'A1-C3'], ['A1-C3', 'A1-C4'], ['A1-C4', 'A1-C1'],
+  ['MS-REF', 'MS-SAIDA'], ['MS-SAIDA', 'EXT-REF'], ['EXT-REF', 'EXT-CURVA'], ['EXT-CURVA', 'A0-REF'],
+  ['A1-C1', 'A1-C2'], ['A1-C2', 'A1-WC-ACESSO'], ['A1-WC-ACESSO', 'A1-C3'],
+  ['A1-WC-ACESSO', 'A1-WC'], ['A1-C3', 'A1-C4'], ['A1-C4', 'A1-C1'],
   ...blocoAFloorPlan.rooms.map(room => [room.nodeId, room.corridorNodeId]),
 ].map(([from, to]) => ({ id: `demo-${from}-${to}`, from, to, confidence: 'pending' as const, kind: 'demonstrative' as const, weightBasis: 'unitless' as const }))
 
 export const campusGraph: Graph = {
-  nodes: campusLocations.map(location => ({ id: location.nodeId })),
+  nodes: [...campusLocations.map(location => ({ id: location.nodeId })),
+    ...['MS-SAIDA', 'EXT-CURVA', 'A1-WC-ACESSO'].map(id => ({ id }))],
   edges: campusConnections.map(({ from, to }) => ({ from, to, weight: 1 })),
 }
 
 /** Unidades do desenho apenas. Não são x/y/z métricos do campus. */
 export const campusDiagramPositions: Positions2D = {
-  'MS-REF': { x: 90, y: 240 }, 'EXT-REF': { x: 280, y: 240 }, 'A0-REF': { x: 470, y: 240 },
+  ...sitePositions,
   ...blocoAPlanPositions,
 }
 

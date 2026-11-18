@@ -79,6 +79,11 @@ select[aria-invalid="true"] { border-color: #9c233b; }
 .map-placeholder p { max-width: 290px; margin-top: 10px; color: var(--muted); font-size: .875rem; line-height: 1.6; background: #fafbfb; }
 .placeholder-caption { margin-top: 30px; padding: 5px 8px; color: var(--muted); font-size: .7rem; background: #fafbfb; }
 .route-summary { min-width: 0; border-radius: 8px; }
+.mapping-note { margin-top: 18px; padding: 12px; background: #faf3f5; color: #68505b; font-size: .75rem; line-height: 1.6; border-radius: 5px; }
+.mapping-note p + p { margin-top: 8px; }
+.mapping-note button, .route-stages button { min-height: 44px; padding: 8px 10px; margin-top: 8px; color: var(--accent); border: 1px solid var(--line); background: white; border-radius: 4px; cursor: pointer; }
+.route-stages { padding: 12px 20px; border-bottom: 1px solid var(--line); font-size: .78rem; line-height: 1.5; display: flex; gap: 6px; flex-wrap: wrap; }
+.route-stages p { width: 100%; color: var(--muted); }
 .project-note { margin-top: 22px; color: var(--muted); font-size: .75rem; line-height: 1.65; }
 
 @media (min-width: 800px) {

@@ -1,5 +1,5 @@
 import type { Point3D } from '../navigation/types'
-import type { DiagramRegion } from '../campus/types'
+import type { DiagramRegion, MapArea } from '../campus/types'
 
 export interface Point2D { readonly x: number; readonly y: number }
 export interface PlanRect { readonly x: number; readonly y: number; readonly width: number; readonly height: number }
@@ -39,6 +39,7 @@ export interface VisualizationConfig {
   readonly mapTitle?: string
   readonly regions?: readonly DiagramRegion[]
   readonly floorPlan?: FloorPlan
+  readonly siteArea?: MapArea
 }
 
 /** Medição informada pela equipe; só associar ao grafo após validar a planta. */

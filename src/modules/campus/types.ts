@@ -11,6 +11,8 @@ export interface PlaceReference {
   readonly positionMeters: Point3D | null
   readonly photoIds: readonly string[]
   readonly source: string
+  readonly navigation?: 'confirmed' | 'demonstrative' | 'pending'
+  readonly accessNote?: string
 }
 export interface CampusPhoto {
   readonly id: string
@@ -50,4 +52,5 @@ export interface CampusView {
   readonly regions: readonly DiagramRegion[]
   readonly notice: string
   readonly floorPlan?: FloorPlan
+  readonly siteArea?: MapArea
 }

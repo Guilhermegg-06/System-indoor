@@ -1,0 +1,34 @@
+[
+  {
+    "step": "Ver rota completa",
+    "layout": {
+      "scrollWidth": 375,
+      "width": 375
+    },
+    "route": "MS-REF MS-SAIDA EXT-REF EXT-CURVA A0-REF"
+  },
+  {
+    "step": "Etapa: Minishopping",
+    "layout": {
+      "scrollWidth": 375,
+      "width": 375
+    },
+    "route": "MS-REF MS-SAIDA EXT-REF EXT-CURVA A0-REF"
+  },
+  {
+    "step": "Etapa: percurso externo",
+    "layout": {
+      "scrollWidth": 375,
+      "width": 375
+    },
+    "route": "MS-REF MS-SAIDA EXT-REF EXT-CURVA A0-REF"
+  },
+  {
+    "step": "Etapa: Bloco A térreo",
+    "layout": {
+      "scrollWidth": 375,
+      "width": 375
+    },
+    "route": "MS-REF MS-SAIDA EXT-REF EXT-CURVA A0-REF"
+  }
+]

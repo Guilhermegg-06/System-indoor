@@ -31,7 +31,7 @@ export const blocoAFloorPlan: FloorPlan = {
 export const blocoAPlanPositions: Positions2D = {
   'A1-C1': { x: 1005, y: 745 }, 'A1-C2': { x: 275, y: 745 },
   'A1-C3': { x: 275, y: 255 }, 'A1-C4': { x: 1005, y: 255 },
-  'A1-WC': { x: 452, y: 500 },
+  'A1-WC': { x: 325, y: 500 }, 'A1-WC-ACESSO': { x: 275, y: 500 },
   // A foto é referência geral do andar; não recebe marcador físico na planta.
   'A1-FOTO': { x: 95, y: 915 },
   ...Object.fromEntries(rooms.map(room => [room.nodeId, room.door])),

@@ -20,7 +20,7 @@ function chooseOnPlan(origin = '09', destination = '16') {
 
 describe('planta 2D integrada ao fluxo existente', () => {
   it('abre na planta do primeiro andar com oito salas, sem exigir 3D', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     expect(container.querySelector('[data-floor-plan]')).toBeTruthy()
     expect(container.querySelectorAll('[data-room-number]')).toHaveLength(8)
     expect(screen.getByLabelText('Área do mapa')).toHaveProperty('value', 'bloco-a')
@@ -29,7 +29,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('usa o clique para preencher os mesmos campos e calcula pelo motor existente', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     expect(screen.getByLabelText('Origem')).toHaveProperty('value', 'a1-sala-09')
     expect(screen.getByLabelText('Destino')).toHaveProperty('value', 'a1-sala-16')
@@ -42,7 +42,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('aceita Enter e Espaço para selecionar salas e avança de origem para destino', () => {
-    render(<App />)
+    render(<App initialView="first" />)
     fireEvent.click(screen.getByRole('button', { name: 'Definir origem' }))
     fireEvent.keyDown(screen.getByRole('button', { name: 'Sala 09' }), { key: 'Enter' })
     expect(screen.getByRole('button', { name: 'Definir destino' }).getAttribute('aria-pressed')).toBe('true')
@@ -52,7 +52,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('pesquisa uma sala, sincroniza seu destaque e limpa a rota ao escolher outro destino', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'sala 14' } })
@@ -66,7 +66,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('inverte os campos e os marcadores e só redesenha após calcular', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     fireEvent.click(screen.getByRole('button', { name: 'Inverter origem e destino' }))
@@ -78,7 +78,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('limpa a rota ao trocar a sala pelo clique', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     fireEvent.click(screen.getByRole('button', { name: 'Sala 15' }))
@@ -87,7 +87,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('amplia, reduz e ajusta a planta sem perder os locais ou a rota', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     const route = container.querySelector('[data-route]')?.getAttribute('points')
@@ -108,7 +108,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('trata origem igual ao destino sem desenhar um percurso artificial', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a1-sala-09' } })
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a1-sala-09' } })
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
@@ -116,13 +116,12 @@ describe('planta 2D integrada ao fluxo existente', () => {
     expect(container.querySelector('[data-route]')).toBeNull()
   })
 
-  it('mantém sanitários sem acesso homologado e pisos sem conexão como sem caminho', () => {
-    const { container } = render(<App />)
+  it('oferece acesso demonstrativo aos sanitários sem inventar ligação vertical', () => {
+    const { container } = render(<App initialView="first" />)
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a1-sala-09' } })
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a1-sanitarios' } })
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
-    expect(screen.getByText('Não há caminho disponível entre a origem e o destino.')).toBeTruthy()
-    expect(container.querySelector('[data-route]')).toBeNull()
+    expect(container.querySelector('[data-route]')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a0-referencia' } })
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: 'a1-sala-09' } })
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
@@ -131,7 +130,7 @@ describe('planta 2D integrada ao fluxo existente', () => {
   })
 
   it('não desenha a planta nem o percurso do primeiro andar no térreo', () => {
-    const { container } = render(<App />)
+    const { container } = render(<App initialView="first" />)
     chooseOnPlan()
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     fireEvent.change(screen.getByLabelText('Andar do mapa'), { target: { value: '0' } })

@@ -154,8 +154,13 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
         </g>
         {view.nodes.filter(node => node.id.startsWith('A1-C') || node.id === 'A1-WC').map(node => {
           const selected = node.id === originNodeId || node.id === destinationNodeId
-          return <g key={node.id} data-node-id={node.id} transform={`translate(${node.point.x} ${node.point.y})`}>
+          const isWc = node.id === 'A1-WC'
+          const choose = () => { if (isWc) { onLocationSelect?.(selectionTarget, 'a1-sanitarios'); if (selectionTarget === 'origin') setSelectionTarget('destination') } }
+          return <g key={node.id} data-node-id={node.id} transform={`translate(${node.point.x} ${node.point.y})`}
+            role={isWc ? 'button' : undefined} tabIndex={isWc ? 0 : undefined} aria-label={isWc ? 'Sanitários A1 · acesso demonstrativo' : undefined}
+            onClick={choose} onKeyDown={event => { if (isWc && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); choose() } }}>
             <title>{node.name}{node.id === originNodeId ? ' — Origem' : ''}{node.id === destinationNodeId ? ' — Destino' : ''}</title>
+            {isWc && <><circle r={27} fill="transparent" /><circle r={12} fill="#fff" stroke="#536d85" strokeWidth={4} /><text x={-15} y={-32} className={styles.pneLabel}>ACESSO WC</text></>}
             {selected && <circle r={20} className={node.id === originNodeId ? styles.originPoint : styles.destinationPoint} />}
           </g>
         })}
@@ -179,6 +184,7 @@ export function FloorPlanMap({ plan, graph, locations, positions, route, originN
       <span><i className={styles.patioSwatch} />Pátio</span><span><i className={styles.routeSwatch} />Percurso</span>
     </div>
     <p className={styles.message} role="status">{routeMessage}</p>
+    <p className={styles.notice}>Rota demonstrativa, não homologada. Sanitários: chegada ao acesso coletivo pelo corredor esquerdo; entrada interna e portas separadas pendentes de vistoria.</p>
     {(originNodeId === 'A1-FOTO' || destinationNodeId === 'A1-FOTO') && <p className={styles.notice}>As fotos são referências gerais do andar e não têm posição exata marcada na planta.</p>}
     <details className={styles.details}><summary>Sobre esta planta aproximada</summary>
       <p>{notice}</p><p>Numeração: 09 no corredor inferior, seguindo à esquerda, pela lateral esquerda e parte superior, até 16 na lateral direita. Distribuição das salas intermediárias e portas estimada para o MVP. Os custos das rotas não representam metros.</p>
