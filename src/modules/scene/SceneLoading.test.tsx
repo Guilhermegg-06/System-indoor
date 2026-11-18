@@ -23,7 +23,7 @@ it('carrega o visualizador pelo caminho configurado', async () => {
 })
 it('trata erro de arquivo e mantém mapa, pesquisa e cálculo utilizáveis', async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
-  const { container } = render(<App visualization={{ ...visualizationConfig, modelUrl: '/models/missing.glb' }} />)
+  const { container } = render(<App initialDataset="demo" visualization={{ ...visualizationConfig, modelUrl: '/models/missing.glb' }} />)
   fireEvent.click(screen.getByRole('button', { name: 'Visualização 3D' }))
   expect(await screen.findByText(/Não foi possível abrir o modelo 3D/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Mapa esquemático' }))

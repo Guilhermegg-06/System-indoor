@@ -10,7 +10,7 @@ afterEach(cleanup)
 
 describe('INT-01 — pesquisa e escolha do destino', () => {
   it.each(['sala 101', 's101'])('pesquisa %s e usa o resultado como destino', query => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
     const search = screen.getByRole('searchbox', { name: 'Pesquisar local' })
     expect(search).toHaveProperty('disabled', false)
@@ -24,7 +24,7 @@ describe('INT-01 — pesquisa e escolha do destino', () => {
   })
 
   it('informa consulta vazia e ausência de resultados e permite limpar a pesquisa', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     expect(screen.getByText('Pesquise por nome ou código para escolher o destino.')).toBeTruthy()
     const search = screen.getByRole('searchbox', { name: 'Pesquisar local' })
     fireEvent.change(search, { target: { value: 'biblioteca' } })
@@ -39,14 +39,14 @@ describe('INT-01 — pesquisa e escolha do destino', () => {
 
 describe('UI-01 e UI-03 — layout e seleção manual', () => {
   it('renderiza título, conteúdo principal e aviso de dados fictícios', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     expect(screen.getByRole('heading', { level: 1, name: 'Navegação Indoor' })).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
     expect(screen.getByText('Navegação experimental · Dados fictícios')).toBeTruthy()
   })
 
   it('valida os dois campos vazios e direciona o foco ao primeiro erro', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     expect(screen.getByText('Selecione a origem.')).toBeTruthy()
     expect(screen.getByText('Selecione o destino.')).toBeTruthy()
@@ -56,7 +56,7 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
   })
 
   it.each(['Origem', 'Destino'])('seleciona %s pelo id do catálogo', label => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     const select = screen.getByRole('combobox', { name: label })
     expect(select).toHaveProperty('disabled', false)
     expect(select).toHaveProperty('value', '')
@@ -70,7 +70,7 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
   })
 
   it('inverte origem e destino, inclusive quando um campo está vazio', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     const origin = screen.getByLabelText('Origem')
     const destination = screen.getByLabelText('Destino')
     fireEvent.change(origin, { target: { value: 'entrada' } })
@@ -85,7 +85,7 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
   })
 
   it.each(['Origem', 'Destino'])('valida somente o campo ausente após preencher %s', label => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     fireEvent.change(screen.getByLabelText(label), { target: { value: 'entrada' } })
     fireEvent.click(screen.getByRole('button', { name: 'Calcular rota' }))
     const missing = label === 'Origem' ? 'destino' : 'origem'
@@ -94,7 +94,7 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
   })
 
   it('identifica o mapa como esquemático e mantém resultado inicialmente vazio', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     const map = screen.getByRole('region', { name: 'Mapa / 3D' })
     expect(within(map).getByRole('img', { name: /Mapa esquemático/ })).toBeTruthy()
     expect(within(map).getByText(/Planta real não validada/)).toBeTruthy()
@@ -104,7 +104,7 @@ describe('UI-01 e UI-03 — layout e seleção manual', () => {
 })
 
 it('liga pesquisa e seleção ao mapa, sem depender de um modelo 3D', () => {
-  const { container } = render(<App />)
+  const { container } = render(<App initialDataset="demo" />)
   expect(screen.getByRole('button', { name: 'Visualização 3D' })).toHaveProperty('disabled', true)
   expect(screen.getByText(/Modelo 3D ainda não fornecido/)).toBeTruthy()
   fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
@@ -133,7 +133,7 @@ function expectClearedRoute() {
 
 describe('INT-02 — interface integrada ao motor existente', () => {
   it('converte Location.id em nodeId e exibe Entrada → Sala 101 na ordem correta', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     const route = screen.getByRole('region', { name: 'Resultado da rota' })
     expect(within(route).getByRole('status').textContent).toBe('Rota encontrada. Siga os pontos na ordem apresentada.')
@@ -142,7 +142,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it('calcula um destino escolhido pela pesquisa', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'entrada' } })
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 's101' } })
     fireEvent.click(screen.getByRole('button', { name: /Sala 101/ }))
@@ -151,7 +151,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it('informa origem igual ao destino sem mostrar deslocamento', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney('entrada')
     expect(screen.getByText('A origem e o destino são o mesmo local. Não é necessário se deslocar.')).toBeTruthy()
     expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
@@ -164,14 +164,14 @@ describe('INT-02 — interface integrada ao motor existente', () => {
     ['invalid-location', missingNode, 'A origem ou o destino informado não existe nos dados de navegação.'],
     ['invalid-graph', invalidGraph, 'Os dados de navegação estão inconsistentes. Não foi possível apresentar a rota.'],
   ] as const)('apresenta %s retornado pelo motor real', (_status, graph, message) => {
-    render(<App graph={graph} />)
+    render(<App initialDataset="demo" graph={graph} />)
     selectJourney()
     expect(screen.getByText(message)).toBeTruthy()
     expect(screen.queryByRole('list', { name: 'Pontos da rota em ordem' })).toBeNull()
   })
 
   it('rejeita um id desconhecido mesmo se uma opção for inserida fora do catálogo', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     const destination = screen.getByLabelText('Destino')
     const option = document.createElement('option')
@@ -186,7 +186,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it.each(['Origem', 'Destino'])('limpa a rota ao alterar %s e calcula somente com os novos valores', label => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     expect(screen.getByRole('list', { name: 'Pontos da rota em ordem' })).toBeTruthy()
     fireEvent.change(screen.getByLabelText(label), { target: { value: 'sala-102' } })
@@ -197,7 +197,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it('limpa ao inverter e calcula o percurso de retorno', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     fireEvent.click(screen.getByRole('button', { name: 'Inverter origem e destino' }))
     expectClearedRoute()
@@ -206,7 +206,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it('limpa a rota quando a pesquisa substitui o destino', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'l01' } })
     fireEvent.click(screen.getByRole('button', { name: /Laboratório 01/ }))
@@ -215,7 +215,7 @@ describe('INT-02 — interface integrada ao motor existente', () => {
   })
 
   it('remove percurso e custo ao esvaziar o destino, e valida nova tentativa', () => {
-    render(<App />)
+    render(<App initialDataset="demo" />)
     selectJourney()
     fireEvent.change(screen.getByLabelText('Destino'), { target: { value: '' } })
     expectClearedRoute()

@@ -1,4 +1,5 @@
 import type { Point3D } from '../navigation/types'
+import type { DiagramRegion } from '../campus/types'
 
 export interface Point2D { readonly x: number; readonly y: number }
 export type Positions2D = Readonly<Record<string, Point2D | undefined>>
@@ -14,6 +15,9 @@ export interface VisualizationConfig {
   readonly modelUrl: string | null
   readonly schematicPositions: Positions2D
   readonly spatialPositions: Positions3D
+  readonly mapNotice?: string
+  readonly mapTitle?: string
+  readonly regions?: readonly DiagramRegion[]
 }
 
 /** Medição informada pela equipe; só associar ao grafo após validar a planta. */
