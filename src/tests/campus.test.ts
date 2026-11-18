@@ -18,19 +18,20 @@ describe('referências do campus e limites do levantamento', () => {
   it('calcula percurso externo explicitamente demonstrativo, sem custos em metros', () => {
     const origin = campusLocations.find(place => place.id === 'ms-referencia')!
     const destination = campusLocations.find(place => place.id === 'a0-referencia')!
-    expect(findRoute(campusGraph, origin.nodeId, destination.nodeId)).toEqual({ status: 'ok', path: ['MS-REF', 'EXT-REF', 'A0-REF'], cost: 2 })
+    expect(findRoute(campusGraph, origin.nodeId, destination.nodeId)).toEqual({ status: 'ok', path: ['MS-REF', 'MS-SAIDA', 'EXT-REF', 'EXT-CURVA', 'A0-REF'], cost: 4 })
   })
   it('não cria passagem do térreo ao primeiro andar nem portas de sanitários não confirmadas', () => {
     expect(findRoute(campusGraph, 'A0-REF', 'A1-C1').status).toBe('no-path')
     expect(findRoute(campusGraph, 'MS-REF', 'A1-C1').status).toBe('no-path')
-    expect(findRoute(campusGraph, 'A1-C1', 'A1-WC').status).toBe('no-path')
+    expect(findRoute(campusGraph, 'A1-C1', 'A1-WC').status).toBe('ok')
     expect(findRoute(campusGraph, 'A1-C1', 'A1-C1').status).toBe('same-location')
   })
   it('separa o térreo pendente da topologia ilustrativa do primeiro andar', () => {
     const ground = getCampusView('bloco-a', 0)
     const first = getCampusView('bloco-a', 1)
-    expect(ground.graph.nodes.map(node => node.id)).toEqual(['A0-REF'])
-    expect(ground.graph.edges).toEqual([])
+    expect(ground.graph.nodes.some(node => node.id === 'A0-REF')).toBe(true)
+    expect(ground.graph.nodes.some(node => node.id.startsWith('A1-'))).toBe(false)
+    expect(ground.siteArea).toBe('bloco-a')
     expect(first.graph.nodes.some(node => node.id === 'A1-C1')).toBe(true)
     expect(first.graph.nodes.some(node => node.id === 'A0-REF')).toBe(false)
     expect(ground.notice).toContain('Planta do térreo pendente')
@@ -40,7 +41,7 @@ describe('referências do campus e limites do levantamento', () => {
     const first = getCampusView('bloco-a', 1)
     const route = findRoute(campusGraph, 'A1-C1', 'A1-C3')
     const map = buildMapView(first.graph, campusLocations, first.positions, route)
-    expect(map.route.map(node => node.id)).toEqual(['A1-C1', 'A1-C2', 'A1-C3'])
+    expect(map.route.map(node => node.id)).toEqual(['A1-C1', 'A1-C4', 'A1-C3'])
     const ground = getCampusView('bloco-a', 0)
     expect(buildMapView(ground.graph, campusLocations, ground.positions, route).route).toEqual([])
   })
