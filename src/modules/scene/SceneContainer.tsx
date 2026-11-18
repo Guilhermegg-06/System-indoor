@@ -16,7 +16,7 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
   }
 }
 
-export default function SceneContainer({ graph, route, modelUrl, spatialPositions = {} }: SceneContainerProps) {
+export default function SceneContainer({ graph, route, modelUrl, walkUrl, area, spatialPositions = {} }: SceneContainerProps) {
   const titleId = useId()
   const points = graph ? toSpatialRoute(graph, route, spatialPositions) : []
 
@@ -29,7 +29,7 @@ export default function SceneContainer({ graph, route, modelUrl, spatialPosition
           : 'Visualização 3D indisponível. Modelo 3D ainda não fornecido. Use o mapa esquemático.'}</p>
           : <SceneErrorBoundary key={modelUrl}>
               <Suspense fallback={<p role="status">Carregando visualização 3D…</p>}>
-                <GLBViewer url={modelUrl} routePoints={points} />
+                <GLBViewer url={modelUrl} walkUrl={walkUrl} area={area} routePoints={points} />
               </Suspense>
             </SceneErrorBoundary>}
       </div>

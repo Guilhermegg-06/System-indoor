@@ -42,7 +42,7 @@ function NavigationApp({ graph, visualization, isCampus, initialView }: {
   const matches = searchLocations(navigableLocations, query)
   const campusView = getCampusView(area, floor)
   const model = campusModels.find(item => item.areaId === area && item.floorId === (area === 'minishopping' ? 'ms-0' : floor === 1 ? 'a-1' : 'a-0'))
-  const mapConfig: VisualizationConfig = isCampus ? { ...visualization, modelUrl: model?.url ?? null,
+  const mapConfig: VisualizationConfig = isCampus ? { ...visualization, modelUrl: model?.url ?? visualization.modelUrl,
     schematicPositions: campusView.positions, spatialPositions: {}, mapNotice: campusView.notice,
     mapTitle: `Planta 2D · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`,
     regions: campusView.regions, floorPlan: campusView.floorPlan, siteArea: campusView.siteArea } : visualization
