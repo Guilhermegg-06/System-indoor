@@ -3,6 +3,7 @@ import type { Graph } from '../modules/navigation/types'
 import type { CampusMeasurement, CampusModel, CampusPhoto, PlaceReference } from '../modules/campus/types'
 import type { Positions2D } from '../modules/visualization/types'
 import { preliminaryMeasurements } from '../config/visualization'
+import { blocoAFloorPlan, blocoAPlanPositions } from './blocoA.floorPlan'
 
 // Referências de áreas, não cadastro de portas ou salas confirmadas.
 export const campusLocations: readonly Location[] = [
@@ -12,6 +13,8 @@ export const campusLocations: readonly Location[] = [
   ...[1, 2, 3, 4].map(index => ({ id: `a1-c${index}`, name: `Circulação A1 · ${index}`, code: `A1-C${index}`, type: 'corridor' as const, block: 'Bloco A', floor: 1, nodeId: `A1-C${index}` })),
   { id: 'a1-sanitarios', name: 'Sanitários A1', code: 'A1-WC', type: 'restroom', block: 'Bloco A', floor: 1, nodeId: 'A1-WC' },
   { id: 'a1-foto', name: 'Corredores · fotos', code: 'A1-FOTO', type: 'corridor', block: 'Bloco A', floor: 1, nodeId: 'A1-FOTO' },
+  ...blocoAFloorPlan.rooms.map(room => ({ id: room.locationId, name: `Sala ${room.number.toString().padStart(2, '0')}`,
+    code: room.nodeId, type: 'room' as const, block: 'Bloco A', floor: 1, nodeId: room.nodeId })),
 ]
 
 const photoIds = ['a1-corredor-01', 'a1-corredor-02']
@@ -21,13 +24,16 @@ export const campusMetadata: Readonly<Record<string, PlaceReference>> = Object.f
   confidence: location.id === 'a1-foto' ? 'confirmed' : 'approximate',
   positionMeters: null,
   photoIds: location.floor === 1 && location.type === 'corridor' ? photoIds : [],
-  source: location.id === 'a1-foto' ? 'Fotos do grupo; primeiro andar confirmado pelo usuário.' : 'Descrição do grupo; posição exata e planta original pendentes.',
+  source: location.id === 'a1-foto' ? 'Fotos do grupo; primeiro andar confirmado pelo usuário.'
+    : location.type === 'room' ? 'Numeração orientada pelo usuário: 09 no corredor inferior até 16 na lateral direita. Distribuição intermediária e portas aproximadas para demonstração.'
+    : 'Descrição do grupo; posição exata e planta original pendentes.',
 } satisfies PlaceReference]))
 
 /** Todas as ligações são demonstrativas/topológicas. Nenhuma equivale a passagem física homologada. */
 export const campusConnections = [
   ['MS-REF', 'EXT-REF'], ['EXT-REF', 'A0-REF'],
   ['A1-C1', 'A1-C2'], ['A1-C2', 'A1-C3'], ['A1-C3', 'A1-C4'], ['A1-C4', 'A1-C1'],
+  ...blocoAFloorPlan.rooms.map(room => [room.nodeId, room.corridorNodeId]),
 ].map(([from, to]) => ({ id: `demo-${from}-${to}`, from, to, confidence: 'pending' as const, kind: 'demonstrative' as const, weightBasis: 'unitless' as const }))
 
 export const campusGraph: Graph = {
@@ -38,8 +44,7 @@ export const campusGraph: Graph = {
 /** Unidades do desenho apenas. Não são x/y/z métricos do campus. */
 export const campusDiagramPositions: Positions2D = {
   'MS-REF': { x: 90, y: 240 }, 'EXT-REF': { x: 280, y: 240 }, 'A0-REF': { x: 470, y: 240 },
-  'A1-C1': { x: 90, y: 70 }, 'A1-C2': { x: 340, y: 70 }, 'A1-C3': { x: 340, y: 330 }, 'A1-C4': { x: 90, y: 330 },
-  'A1-WC': { x: 215, y: 170 }, 'A1-FOTO': { x: 500, y: 210 },
+  ...blocoAPlanPositions,
 }
 
 export const campusPhotos: readonly CampusPhoto[] = [
