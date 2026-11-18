@@ -17,7 +17,7 @@
 .zoomControls button { min-width: 44px; min-height: 44px; padding: 8px; background: white; border: 1px solid var(--line); border-radius: 4px; color: var(--accent); cursor: pointer; font-size: .8rem; }
 .zoomControls button:disabled { opacity: .4; cursor: default; }
 .zoomControls output { min-width: 42px; font-size: .75rem; text-align: center; font-variant-numeric: tabular-nums; }
-.viewport { width: 100%; max-height: 620px; overflow: auto; background: #f6f8f9; overscroll-behavior: contain; }
+.viewport { width: 100%; overflow: auto; background: #f6f8f9; overscroll-behavior: contain; }
 .zoomed { height: clamp(320px, 48vw, 620px); cursor: grab; }
 .zoomed:active { cursor: grabbing; }
 .plan { display: block; height: auto; min-width: 100%; max-width: none; user-select: none; }

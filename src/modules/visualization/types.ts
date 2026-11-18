@@ -14,6 +14,7 @@ export interface PlanRoom extends PlanRect {
   readonly approach: readonly Point2D[]
 }
 export interface FloorPlan {
+  readonly floor?: 0 | 1
   readonly id: string
   readonly width: number
   readonly height: number

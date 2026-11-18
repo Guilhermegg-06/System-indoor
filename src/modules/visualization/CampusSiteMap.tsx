@@ -16,17 +16,18 @@ interface Props {
 const views: Record<MapArea, { box: string; title: string }> = {
   campus: { box: '0 80 1280 700', title: 'Campus · implantação geral' },
   minishopping: { box: '10 440 1160 310', title: 'Minishopping · cobertura e acessos' },
-  'percurso-externo': { box: '620 300 570 360', title: 'Percurso externo · passeio de pedestres' },
+  'percurso-externo': { box: '20 100 1140 640', title: 'Percurso externo · passeio de pedestres' },
   'bloco-a': { box: '710 110 460 450', title: 'Bloco A · acesso ao térreo' },
 }
 
 export function CampusSiteMap({ area, graph, locations, positions, route, originNodeId, destinationNodeId, notice, onLocationSelect, onOpenArea }: Props) {
   const [zoom, setZoom] = useState(1)
   const [field, setField] = useState<'origin' | 'destination'>('destination')
+  const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
   const titleId = useId(), roofId = useId()
   const view = buildMapView(graph, locations, positions, route)
-  const visible = locations.filter(place => view.nodes.some(node => node.id === place.nodeId))
+  const visible = locations.filter(place => view.nodes.some(node => node.id === place.nodeId) && (area !== 'minishopping' || place.nodeId === 'MS-REF'))
   const incompatible = route?.status === 'ok' && !view.route.length
   return <div className={styles.container}>
     <div className={styles.heading}><div><small>PLANTA DE IMPLANTAÇÃO · SEM ESCALA</small><h3>{views[area].title}</h3></div><span>2D</span></div>
@@ -41,7 +42,16 @@ export function CampusSiteMap({ area, graph, locations, positions, route, origin
       <button type="button" aria-label="Ampliar mapa" disabled={zoom >= 3} onClick={() => setZoom(value => Math.min(3, value + .25))}>+</button>
       <button type="button" onClick={() => { setZoom(1); if (scroll.current) { scroll.current.scrollLeft = 0; scroll.current.scrollTop = 0 } }}>Ajustar mapa</button>
     </div>
-    <div className={styles.viewport} ref={scroll} tabIndex={0} role="region" aria-label="Planta do campus; amplie e role para explorar">
+    <div className={`${styles.viewport} ${zoom > 1 ? styles.zoomed : ''}`} ref={scroll} tabIndex={0} role="region" aria-label="Planta do campus; amplie e role para explorar"
+      onPointerDown={event => {
+        if (zoom <= 1 || event.pointerType !== 'mouse' || event.button !== 0 || (event.target as Element).closest('[role="button"]')) return
+        drag.current = { x: event.clientX, y: event.clientY, left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }
+        event.currentTarget.setPointerCapture(event.pointerId)
+      }} onPointerMove={event => {
+        if (!drag.current) return
+        event.currentTarget.scrollLeft = drag.current.left + drag.current.x - event.clientX
+        event.currentTarget.scrollTop = drag.current.top + drag.current.y - event.clientY
+      }} onPointerUp={() => { drag.current = null }} onPointerCancel={() => { drag.current = null }}>
       <svg viewBox={views[area].box} style={{ width: `${zoom * 100}%` }} role="group" aria-labelledby={titleId} data-site-plan={area}>
         <title id={titleId}>{views[area].title}</title>
         <defs><pattern id={roofId} width="18" height="18" patternUnits="userSpaceOnUse"><rect width="18" height="18" fill="#e1e7eb"/><path d="M 0 0 V 18" stroke="#c3ccd2" strokeWidth="2"/></pattern></defs>
@@ -70,7 +80,7 @@ export function CampusSiteMap({ area, graph, locations, positions, route, origin
             <title>{place.name}{origin ? ' — Origem' : ''}{destination ? ' — Destino' : ''}. Acesso aproximado no passeio.</title>
             <circle cx={point.x} cy={point.y} r="26" fill="transparent" />
             <circle cx={point.x} cy={point.y} r={origin || destination ? 15 : 10} fill={origin ? '#18765e' : destination ? '#97264f' : '#fff'} stroke="#97264f" strokeWidth="4" />
-            <text x={point.x} y={point.y - 28} textAnchor="middle" className={styles.accessLabel}>{origin ? 'ORIGEM · ' : ''}{destination ? 'DESTINO · ' : ''}{place.code}</text>
+            <text x={point.x} y={point.y - 28} textAnchor="middle" className={styles.accessLabel}>{origin ? 'ORIGEM · ' : ''}{destination ? 'DESTINO · ' : ''}{place.nodeId === 'MS-REF' ? 'SAÍDA MINISHOPPING' : place.nodeId === 'EXT-REF' ? 'PASSEIO' : 'ENTRADA BLOCO A'}</text>
           </g>
         })}
       </svg>
@@ -79,6 +89,7 @@ export function CampusSiteMap({ area, graph, locations, positions, route, origin
       <button type="button" onClick={() => onOpenArea?.('campus', 0)}>Visão geral</button>
       <button type="button" onClick={() => onOpenArea?.('minishopping', 0)}>Abrir Minishopping</button>
       <button type="button" onClick={() => onOpenArea?.('percurso-externo', 0)}>Abrir percurso externo</button>
+      <button type="button" onClick={() => onOpenArea?.('bloco-a', 0)}>Abrir térreo</button>
       <button type="button" onClick={() => onOpenArea?.('bloco-a', 1)}>Abrir primeiro andar</button>
     </div>
     <p className={styles.caption}>Legenda: cobertura cinza · passeio bege · área verde · percurso vinho · origem verde · destino vinho.</p>

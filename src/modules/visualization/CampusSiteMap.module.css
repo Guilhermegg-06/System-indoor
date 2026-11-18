@@ -8,7 +8,7 @@
 .controls button[aria-pressed="true"] { border-color:var(--accent); background:#f7eaf0; }
 .controls button:disabled { opacity:.4; }
 .controls output { min-width:45px; font-size:.8rem; text-align:center; }
-.viewport { overflow:auto; max-height:620px; background:#eef3ec; border-block:1px solid var(--line); overscroll-behavior:contain; }
+.viewport { overflow:auto; background:#eef3ec; border-block:1px solid var(--line); overscroll-behavior:contain; }
 .viewport svg { display:block; max-width:none; height:auto; min-width:100%; }
 .buildingLabel { font:650 27px 'Segoe UI',sans-serif; fill:#344c59; letter-spacing:1px; }
 .walkLabel { font:600 16px 'Segoe UI',sans-serif; fill:#536854; }
@@ -19,3 +19,6 @@
 .caption,.notice { padding:10px 20px; color:var(--muted); font-size:.76rem; line-height:1.6; }
 .notice { border-top:1px solid var(--line); }
 @media(max-width:600px) { .controls,.heading,.caption,.notice { padding-inline:14px; } .heading h3 { font-size:.9rem; } }
+
+.zoomed { max-height:620px; cursor:grab; }
+.zoomed:active { cursor:grabbing; }
