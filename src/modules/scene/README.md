@@ -1,27 +1,11 @@
 # Visualizador de modelo externo
 
-`SceneContainer` mantém `graph` e `route` e acrescenta `modelUrl` e `spatialPositions` opcionais. Não calcula rotas, não importa fixtures e não altera os dados. Ausência de grafo/modelo, carregamento e falha têm mensagens acessíveis. Erros de arquivo ou WebGL ficam isolados; o usuário pode voltar ao mapa.
+O ponto de entrada configura o GLB e sua grade de colisão em `public/models/`. O seletor do campus fornece a área e o andar ao mesmo `SceneContainer` usado pela aplicação. O visualizador e o modelo só carregam ao abrir a vista 3D. Configurações que fornecem apenas um GLB mantêm a câmera orbital.
 
-## Entrega do modelo pela equipe
+Na caminhada, `WalkControls` consulta duas camadas de alturas e folgas, geradas para este modelo. A altura mais próxima dentro do limite de um degrau permite passar das escadas para as galerias. As coordenadas XZ correspondem ao plano horizontal do glTF. Uma nova geometria exige nova grade e conferência das entradas.
 
-1. Coloque o arquivo real em `public/models/`. Exemplo de caminho futuro: `public/models/campus.glb`; nenhum arquivo de exemplo foi criado.
-2. Em `src/config/visualization.ts`, troque `modelUrl: null` pelo caminho `/models/campus.glb`. Para glTF, mantenha também buffers e texturas referenciados. URLs externas precisam usar HTTPS e permitir CORS.
-3. Abra **Visualização 3D**. A câmera enquadra o arquivo; arraste para girar, use roda/pinça para zoom e dois dedos para deslocar. **Reenquadrar modelo** restaura a câmera. Isso não implementa caminhada ou colisões.
-4. Após validar a planta e a transformação do modelo, preencha `spatialPositions` por `nodeId`, no mesmo sistema x/y/z do arquivo. Todos os nós do percurso precisam de coordenadas finitas. O adaptador devolve uma sequência completa ou nenhuma linha; não converte posições 2D nem pesos em metros.
+O adaptador existente consome o resultado do motor e o contrato `spatialPositions`. O campus mantém esse contrato vazio até que a equipe meça e confira os nós e os segmentos no piso correto. As coordenadas do desenho 2D e os pesos do grafo têm referenciais próprios.
 
-O GLTFLoader padrão atende GLB/glTF sem decodificadores externos. Exportações com Draco, Meshopt ou texturas KTX2 exigem configuração adicional e não foram homologadas. Prefira exportação inicial sem essas compressões.
+O GLTFLoader lê o arquivo autocontido com texturas incorporadas. O Canvas usa renderização sob demanda. A densidade máxima é 1,25 e pode cair para 0,65 durante a caminhada. A resolução volta ao valor de repouso ao parar.
 
-## Separação dos dados
-
-- `schematicPositions`: coordenadas de desenho, sem escala física.
-- `spatialPositions`: vazio até a validação das posições no modelo.
-- `preliminaryMeasurements`: 34 m e largura típica 2,56 m do Bloco A; referências 24,14 m, 12,43 m, 2,96 m e 2,48 m sem trecho associado. Todas preliminares, sem associação ao grafo.
-- Escopo físico: Minishopping e Bloco A. Bloco B excluído. O catálogo original permanece fictício.
-
-Three.js/Fiber ficam em importação dinâmica, fora do carregamento inicial do mapa. O Canvas renderiza sob demanda e limita a densidade de pixels a 1,5. Controles são liberados ao desmontar; o modelo usa o cache do `useLoader`.
-
-## Limites verificados
-
-Testes de estados do contêiner usam um visualizador simulado, sem WebGL. O smoke de produção testa o mapa sem modelo e o carregador real com arquivo ausente. **Não existe modelo navegável entregue nem validação visual de um modelo real.** Enquadramento, materiais, rota espacial e desempenho precisam ser conferidos quando a equipe entregar o arquivo.
-
-Referências: [Canvas/Fiber](https://r3f.docs.pmnd.rs/api/canvas), [GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html), [OrbitControls](https://threejs.org/docs/pages/OrbitControls.html).
+[Instruções de uso, testes e limites da integração local](../../../INTEGRACAO-LOCAL.md)
