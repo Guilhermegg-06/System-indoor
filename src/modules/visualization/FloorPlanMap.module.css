@@ -1,0 +1,80 @@
+.container { min-width: 0; }
+.heading { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 16px; gap: 12px; }
+.eyebrow { font-size: .63rem; font-weight: 700; letter-spacing: .15em; color: var(--accent); margin-bottom: 7px; }
+.heading h3 { font-size: 1.1rem; letter-spacing: -.03em; }
+.heading h3 span { color: var(--muted); font-weight: 400; }
+.floorBadge { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #dfccd3; border-radius: 6px; background: #faf4f6; color: var(--accent); font-size: 1.1rem; font-weight: 650; }
+.selection { padding: 0 20px 16px; }
+.selectionButtons { display: flex; gap: 8px; }
+.selectionButtons button { display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 44px; padding: 8px 10px; background: white; border: 1px solid var(--line); border-radius: 5px; color: #37464b; font-size: .8rem; cursor: pointer; }
+.selectionButtons button[aria-pressed="true"] { border-color: var(--accent); background: #faf0f4; color: #7d2546; box-shadow: inset 0 0 0 1px var(--accent); }
+.selection p { font-size: .75rem; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+.originDot, .destinationDot { display: inline-block; flex: 0 0 auto; width: 10px; height: 10px; border: 2px solid #19735c; background: #19735c; border-radius: 50%; }
+.destinationDot { border-color: var(--accent); background: var(--accent); border-radius: 2px; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 20px; background: #fafbfc; border-block: 1px solid var(--line); }
+.planCaption { font-size: .7rem; color: var(--muted); }
+.zoomControls { display: flex; align-items: center; gap: 4px; }
+.zoomControls button { min-width: 44px; min-height: 44px; padding: 8px; background: white; border: 1px solid var(--line); border-radius: 4px; color: var(--accent); cursor: pointer; font-size: .8rem; }
+.zoomControls button:disabled { opacity: .4; cursor: default; }
+.zoomControls output { min-width: 42px; font-size: .75rem; text-align: center; font-variant-numeric: tabular-nums; }
+.viewport { width: 100%; max-height: 620px; overflow: auto; background: #f6f8f9; overscroll-behavior: contain; }
+.zoomed { height: clamp(320px, 48vw, 620px); cursor: grab; }
+.zoomed:active { cursor: grabbing; }
+.plan { display: block; height: auto; min-width: 100%; max-width: none; user-select: none; }
+.circulation { fill: #f5e9eb; stroke: #8e7780; stroke-width: 3; }
+.corridorLabel { font-size: 17px; font-weight: 600; letter-spacing: 4px; fill: #9b7f89; }
+.courtyard { fill: #eaf1ed; stroke: #577867; stroke-width: 4; }
+.patioLines { fill: none; stroke: #bccfc3; stroke-width: 2; }
+.patioTitle { fill: #426451; font-size: 24px; font-weight: 650; letter-spacing: 2px; }
+.patioSubtitle { fill: #718c7a; font-size: 14px; letter-spacing: 2px; }
+.restrooms { fill: #eaf0f5; stroke: #596877; stroke-width: 4; }
+.innerWall { fill: none; stroke: #7b8b99; stroke-width: 3; }
+.fixture { fill: #fff; stroke: #91a0ad; stroke-width: 2; }
+.wcLabel { font-size: 24px; font-weight: 650; fill: #4e6477; }
+.pneLabel { font-size: 15px; fill: #687f92; }
+.roomButton { cursor: pointer; outline: none; }
+.room { fill: #fff; stroke: #48555e; stroke-width: 4; transition: fill .15s; }
+.roomButton:hover .room { fill: #f8eef2; stroke: var(--accent); }
+.roomButton:focus-visible .room { stroke: #96254e; stroke-width: 8; stroke-dasharray: 12 5; }
+.originRoom { fill: #e5f2ec; stroke: #19735c; }
+.destinationRoom { fill: #f7e6ed; stroke: var(--accent); }
+.roomCaption { font-size: 18px; font-weight: 500; letter-spacing: 4px; fill: #7d8990; }
+.roomNumber { font-size: 46px; font-weight: 650; letter-spacing: -1px; fill: #283944; }
+.roomMarker { font-size: 14px; font-weight: 700; fill: #6b3b50; letter-spacing: 1px; }
+.doorGap { stroke: #fff; stroke-width: 8; }
+.door { stroke: #9c8a7e; stroke-width: 2; fill: none; }
+.orientation { font-size: 15px; fill: #8b999f; letter-spacing: 2px; }
+.routeHalo, .route, .blocked { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.routeHalo { stroke: white; stroke-width: 18; }
+.route { stroke: #96254e; stroke-width: 10; }
+.blocked { stroke: #a36d35; stroke-width: 8; stroke-dasharray: 12 10; }
+.originPoint { fill: #19735c; stroke: white; stroke-width: 5; }
+.destinationPoint { fill: #96254e; stroke: white; stroke-width: 5; }
+.pointLetter { font-size: 23px; font-weight: 700; fill: white; }
+.journey { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 16px 20px; border-block: 1px solid var(--line); }
+.journey p { display: flex; align-items: center; gap: 10px; font-size: .8rem; line-height: 1.45; overflow-wrap: anywhere; }
+.journey small { display: block; font-size: .58rem; letter-spacing: .12em; color: var(--muted); margin-bottom: 3px; }
+.journeyArrow { color: #9aa5ac; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 14px 20px 0; font-size: .7rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 13px; height: 13px; border: 1px solid #69757e; }
+.roomSwatch { background: white; }
+.corridorSwatch { background: #f5e9eb; }
+.patioSwatch { background: #eaf1ed; }
+.legend .routeSwatch { height: 4px; width: 19px; border: none; background: var(--accent); border-radius: 4px; }
+.message, .notice { color: var(--muted); font-size: .78rem; line-height: 1.6; padding: 12px 20px; }
+.details { border-top: 1px solid #edf0f2; padding: 12px 20px; font-size: .73rem; color: var(--muted); line-height: 1.6; }
+.details summary { cursor: pointer; color: #6b4d5a; min-height: 28px; }
+.details p { margin-top: 8px; }
+@media (max-width: 600px) {
+  .heading, .selection { padding-inline: 14px; }
+  .toolbar { padding-inline: 12px; }
+  .planCaption { width: 100%; }
+  .zoomControls { justify-content: space-between; width: 100%; }
+  .heading h3 { font-size: .95rem; }
+  .heading h3 span { display: block; margin-top: 3px; font-size: .8rem; }
+  .selectionButtons button { font-size: .75rem; }
+  .journey { padding: 14px; gap: 8px; }
+  .legend, .message, .notice, .details { padding-inline: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .room { transition: none; } }
