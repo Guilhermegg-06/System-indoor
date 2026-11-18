@@ -28,8 +28,8 @@ function NavigationApp({ graph, visualization, isCampus, onDatasetChange }: {
   graph: Graph; visualization: VisualizationConfig; isCampus: boolean; onDatasetChange: (dataset: 'campus' | 'demo') => void
 }) {
   const locations = isCampus ? campusLocations : mockLocations
-  const [area, setArea] = useState<MapArea>('campus')
-  const [floor, setFloor] = useState(0)
+  const [area, setArea] = useState<MapArea>(isCampus ? 'bloco-a' : 'campus')
+  const [floor, setFloor] = useState(isCampus ? 1 : 0)
   const [inspectedLocationId, setInspectedLocationId] = useState('')
   const [originId, setOriginId] = useState('')
   const [destinationId, setDestinationId] = useState('')
@@ -42,7 +42,8 @@ function NavigationApp({ graph, visualization, isCampus, onDatasetChange }: {
   const model = campusModels.find(item => item.areaId === area && item.floorId === (area === 'minishopping' ? 'ms-0' : floor === 1 ? 'a-1' : 'a-0'))
   const mapConfig: VisualizationConfig = isCampus ? { ...visualization, modelUrl: model?.url ?? null,
     schematicPositions: campusView.positions, spatialPositions: {}, mapNotice: campusView.notice,
-    mapTitle: `Mapa esquemático · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`, regions: campusView.regions } : visualization
+    mapTitle: `Mapa esquemático · ${area === 'campus' ? 'Campus' : area} · ${floor === 1 ? 'Primeiro andar' : 'Térreo / exterior'}`,
+    regions: campusView.regions, floorPlan: campusView.floorPlan } : visualization
   const mapGraph = isCampus ? campusView.graph : graph
   const routePhotoLocation = result?.status === 'ok' && isCampus
     ? locations.find(place => result.path.includes(place.nodeId) && photosForLocation(place.id).length > 0) : undefined
@@ -58,7 +59,10 @@ function NavigationApp({ graph, visualization, isCampus, onDatasetChange }: {
     setSubmitted(false)
     setResult(null)
     setInspectedLocationId(id)
-    if (isCampus && locations.find(place => place.id === id)?.floor === 1) { setArea('bloco-a'); setFloor(1) }
+    if (isCampus) {
+      const location = locations.find(place => place.id === id)
+      if (location) { setArea(location.floor === 1 ? 'bloco-a' : 'campus'); setFloor(location.floor) }
+    }
   }
 
   function swapLocations() {
@@ -163,11 +167,12 @@ function NavigationApp({ graph, visualization, isCampus, onDatasetChange }: {
 
             <div className="catalog-note">
               <span className="catalog-count">{locations.length.toString().padStart(2, '0')}</span>
-              <p>{isCampus ? 'referências de locais' : 'locais de exemplo'}<span>{isCampus ? 'Sem cadastro de salas ou portas reais' : 'Para desenvolvimento da interface'}</span></p>
+              <p>{isCampus ? 'referências de locais' : 'locais de exemplo'}<span>{isCampus ? 'Salas 09–16 · posições aproximadas' : 'Para desenvolvimento da interface'}</span></p>
             </div>
           </section>
 
           <VisualizationPanel key={isCampus ? campusView.id : 'demo'} graph={mapGraph} locations={locations} config={mapConfig} route={result}
+            onLocationSelect={isCampus ? changeLocation : undefined}
             originNodeId={locations.find(location => location.id === originId)?.nodeId}
             destinationNodeId={locations.find(location => location.id === destinationId)?.nodeId}
             contextControls={isCampus && <CampusViewControls area={area} floor={floor} onAreaChange={next => { setArea(next); setFloor(0) }} onFloorChange={setFloor} />} />
