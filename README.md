@@ -5,7 +5,11 @@ Navegação institucional pelo celular para ajudar alunos e visitantes a encontr
 **Fotografias reais do primeiro andar estão disponíveis. O mapa e suas conexões são demonstrativos, sem escala validada. O ambiente real ainda não foi modelado em 3D.**
 
 ## Escopo
-Minishopping + Bloco A; Bloco B fora do MVP. Pesquisa, origem/destino manual, cálculo e plantas 2D funcionam sem GLB. A visão inicial abre a implantação geral aproximada do campus, com cobertura do Minishopping, Bloco A, passeios, acessos e áreas verdes. As vistas aproximam cada setor; o primeiro andar preserva salas 09–16, paredes, portas, sanitários e pátio. O acesso coletivo aos sanitários é demonstrativo, com chegada pelo corredor esquerdo. Térreo e primeiro andar continuam separados, sem ligação vertical cadastrada. A referência de fotos é consultável separadamente e não é destino de navegação. O catálogo fictício original continua disponível em **Dados da navegação**. Modelo real, caminhada e colisões dependem das próximas entregas. Sem autenticação, GPS indoor, Supabase ou IA na aplicação.
+MVP 2D do Campus UNIMA Afya: implantação geral, Minishopping (cobertura e acessos), percurso externo e Bloco A em dois pisos. Térreo com salas 01–08; primeiro andar com salas 09–16. Ambos possuem anel de circulação e chegada aos sanitários pelo corredor esquerdo. O térreo reutiliza provisoriamente a distribuição do primeiro andar, conforme decisão do responsável.
+
+A conexão vertical é **simulada para apresentação acadêmica**; não representa escada real nem rota acessível homologada. A entrada do passeio no térreo também é uma transição demonstrativa entre vistas. Plantas, portas e caminhos não equivalem a levantamento físico. Não há interiores inventados no Minishopping nem Bloco B.
+
+Abra a aplicação e use a planta geral, a pesquisa ou os seletores de origem/destino. Calcule a rota e acompanhe as etapas **Campus e percurso externo → Térreo → Primeiro andar**, conforme o trajeto. A troca de vista mantém o resultado completo e mostra somente o segmento daquele referencial. Zoom, rolagem/arraste e ajuste funcionam sem GLB.
 
 ## Stack e arquitetura
 React, TypeScript, Vite, Vitest, Oxlint e GitHub Actions. Three.js e React Three Fiber são carregados somente ao abrir um modelo configurado.
@@ -28,17 +32,9 @@ As arestas são bidirecionais, pesos finitos não negativos, bloqueios ignorados
 
 `Location` exige `id`, `name`, `type`, `block`, `floor` e `nodeId`; `code` e `position` são opcionais. Os dados são somente leitura no contrato TypeScript. `id` identifica a seleção no catálogo; `nodeId` é enviado ao motor de rotas.
 
-O modo **Demonstração original** preserva os seis registros da PR #35, associados a E0, C1, C2, S101, S102 e L01. Nomes, andares e setores são exemplos fictícios. O modo **Campus** contém 17 referências: as nove anteriores e oito salas de demonstração (09–16). O usuário orientou o início da numeração na parte inferior, seguindo à esquerda até a lateral direita. A distribuição intermediária, as dimensões e as portas são estimadas; não equivalem a um cadastro físico homologado. Coordenadas métricas permanecem pendentes; as posições SVG são apenas unidades do desenho.
+O catálogo público tem 32 registros: 31 destinos demonstrativos conectados e uma referência fotográfica não navegável, consultável separadamente. Salas 01–16 possuem IDs próprios, nó, coordenada de desenho e acesso pelo corredor. Coordenadas SVG nunca representam distâncias métricas. As seis fixtures originais permanecem nos testes, sem seletor experimental na interface pública.
 
-O layout integra `SearchField`, seleção manual, inversão e `RouteResultView`. Pesquise por nome ou código e escolha um resultado para preencher o destino. Na planta, use **Definir origem** ou **Definir destino** e toque em uma sala; Enter e Espaço também funcionam. Os cliques preenchem os mesmos campos existentes. Alterar os locais limpa o resultado anterior; calcule novamente. O mapa permite ampliar até 300%, rolar, arrastar com o mouse quando ampliado e ajustar a visualização. Rotas seguem os corredores até a porta, sem cruzar salas, sanitários ou pátio.
-
-Para demonstrar o campus:
-Abra **Abrir primeiro andar** para usar as salas. No campus, selecione Minishopping → Bloco A térreo e acompanhe as etapas da rota. As plantas externas mostram acessos pelo passeio, sem interiores inventados. Auditoria, catálogo e evidências desktop/mobile: [VALIDACAO_ROTAS_COMPLETAS.md](docs/VALIDACAO_ROTAS_COMPLETAS.md).
-1. Na planta inicial, clique em **Definir origem**, **Sala 09** e **Sala 16**; o modo muda automaticamente para destino após escolher a origem. Calcule: **A1-S09 → A1-C1 → A1-S16**. Amplie e ajuste a planta. Pesquise **sala 14**, selecione o resultado e calcule novamente. Registro: [VALIDACAO_PLANTA_INTERATIVA.md](docs/VALIDACAO_PLANTA_INTERATIVA.md).
-2. Origem **Minishopping**; pesquise **A0** e selecione **Bloco A · térreo**. Calcule: **MS-REF → MS-SAIDA → EXT-REF → EXT-CURVA → A0-REF**, um percurso explicitamente demonstrativo. Use **Etapas da rota** para acompanhar por área.
-3. Selecione **Circulação A1 · 1** e **Circulação A1 · 3**. O mapa muda para o primeiro andar; calcule a rota e consulte as fotos de referência. Elas confirmam o pavimento, não a posição exata de cada ponto.
-4. Em **Área do mapa → Bloco A**, alterne o andar. O térreo informa a ausência da planta. Minishopping → primeiro andar retorna **sem caminho**, pois nenhuma escada/conexão foi confirmada.
-5. Para o exemplo anterior, escolha **Demonstração original**: Entrada → Sala 101 exibe **E0 → C1 → C2 → S101**.
+A auditoria `npm run audit:campus` verifica o catálogo, nós, arestas, pesos, geometria de circulação e todos os 1024 pares. Os 961 pares navegáveis são demonstrativos; os outros 63 envolvem a referência fotográfica. Relatório e capturas do build: [VALIDACAO_MVP_FINAL.md](docs/VALIDACAO_MVP_FINAL.md).
 
 A fase 1 atende às issues #21, #29 e #30, sobre a base da PR #35. Evidências e limites: [VALIDACAO_MVP_FASE1.md](docs/VALIDACAO_MVP_FASE1.md). A validação anterior está em [VALIDACAO_19_28.md](docs/VALIDACAO_19_28.md).
 
@@ -54,6 +50,7 @@ npm run dev
 npm run lint
 npm run typecheck
 npm test
+npm run audit:campus
 npm run build
 ```
 `npm run test:watch` acompanha mudanças. CI executa as mesmas etapas em PRs para main e pushes em main, com cache npm.

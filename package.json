@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "audit:campus": "node scripts/audit-campus.mjs",
     "typecheck": "tsc -b"
   },
   "dependencies": {
